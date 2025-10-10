@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>갓겜판독기 - 홈</title>
+
+<style>
+  /* ========== 主题变量（含画廊尺寸） ========== */
+  :root{
+    --nav-h:64px; --bg:#fff; --ink:#111827; --ink-2:#475569; --brand:#0ea5e9; --line:#e5e7eb; --radius:12px;
+    --center-w:clamp(320px,45vw,560px); /* 顶部画廊中间图宽度（随屏宽） */
+    --center-h:360px;                   /* 顶部画廊固定高度 */
+    --side-ratio:.5;                    /* 侧图可见宽度 = 中图 * 该比例（0.5=半张） */
+    --gap:8px;                          /* 图与图之间间距 */
+    --edge-pad:clamp(14px,2vw,24px);    /* 画廊左右统一内边距（余白） */
+  }
+
+  /* ========== 全局基础 ========== */
+  *{ box-sizing:border-box }
+  html,body{ margin:0 }
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:#f8fafc; color:var(--ink);
+  }
+  main{ max-width:1200px; margin:24px auto; padding:0 16px }
+
+  /* ========== 顶栏 ========== */
+  header{
+    position:sticky; top:0; z-index:1000;
+    height:var(--nav-h); background:var(--bg);
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+    background:#7deced;
+  }
+  .nav{
+    max-width:1200px; height:100%;
+    margin:0 auto; padding:0 16px;
+    display:grid; grid-template-columns:auto 1fr auto; gap:16px; align-items:center;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; white-space:nowrap }
+  .brand .logo{
+    width:28px; height:28px; border-radius:8px; display:grid; place-items:center;
+    background:#e2f2ff; color:#0ea5e9; font-weight:700;
+  }
+  .brand-name{ font-weight:800; letter-spacing:.2px }
+  .nav-links{ display:flex; gap:18px; margin-left:16px; white-space:nowrap }
+  .nav-links a{ color:var(--ink-2); text-decoration:none; font-weight:600 }
+  .nav-links a:hover{ color:var(--ink) }
+  .search{ display:flex; justify-content:center }
+  .search-field{ width:min(56vw,560px); position:relative }
+  .search-field input{
+    width:100%; height:40px; padding:0 14px 0 36px;
+    border:1px solid var(--line); border-radius:999px; outline:none; background:#fff; font-size:14px;
+  }
+  .search-field input:focus{ border-color:#93c5fd; box-shadow:0 0 0 3px rgba(59,130,246,.15) }
+  .search-field .icon{ position:absolute; left:12px; top:50%; transform:translateY(-50%); width:18px; height:18px; opacity:.6 }
+  .actions{ display:flex; gap:10px; align-items:center }
+  .link{ color:var(--ink-2); text-decoration:none; font-weight:600 }
+  .link:hover{ color:var(--ink); text-decoration:underline }
+  @media (max-width:900px){ .nav-links{display:none} .search-field{width:min(70vw,520px)} }
+  @media (max-width:480px){ .brand-name,.actions .link{display:none} .search-field{width:100%} }
+
+  /* ========== 顶部画廊（中间一张 + 两侧半张） ========== */
+  :root{ --side-w: calc(var(--center-w) * var(--side-ratio)); }
+  .cardbox{
+    position:relative;
+    width:min(96vw, calc(var(--center-w) + 2*var(--side-w) + 2*var(--gap) + 2*var(--edge-pad)));
+    padding-block:16px; padding-inline:0;
+    margin:20px auto;
+    border:1px solid #e5e7eb; border-radius:12px; background:#fff;
+    box-shadow:0 10px 24px rgba(0,0,0,.06);
+  }
+  .gallery{
+    display:grid;
+    grid-template-columns: var(--side-w) var(--center-w) var(--side-w);
+    gap:var(--gap); align-items:center; justify-content:center;
+    padding-inline:var(--edge-pad);
+  }
+  .gallery > figure{
+    margin:0; height:var(--center-h);
+    border-radius:12px; overflow:hidden;
+    box-shadow:0 10px 24px rgba(0,0,0,.12); background:#ddd;
+  }
+  .center img, .side img{
+    width:var(--center-w); height:var(--center-h);
+    object-fit:cover; display:block;
+  }
+  .side.left  img{ object-position:left  center }
+  .side.right img{ object-position:right center }
+
+  .nav-btn{
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:42px; height:42px; border-radius:50%;
+    border:1px solid rgba(0,0,0,.12);
+    background:rgba(255,255,255,.95);
+    display:grid; place-items:center; cursor:pointer; user-select:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.15); z-index:2;
+  }
+  .nav-btn.left  { left:  calc(var(--edge-pad) - 4px) }
+  .nav-btn.right { right: calc(var(--edge-pad) - 4px) }
+  .nav-btn:active{ transform:translateY(calc(-50% + 1px)) }
+  .nav-btn:focus{ outline:none; box-shadow:0 0 0 3px rgba(59,130,246,.25) }
+
+  @media (max-width:680px){
+    .gallery{ grid-template-columns: var(--center-w); padding-inline:var(--edge-pad) }
+    .side, .nav-btn{ display:none }
+  }
+
+  /* ========== 通用板块标题 ========== */
+  .section{ margin:28px 0 }
+  .section h2{ margin:0 0 14px; font-size:20px }
+
+  /* ========== 游戏卡片网格（复用） ========== */
+  .game-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:24px }
+  .game-card{ background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,.06) }
+  .game-cover{ aspect-ratio:16/9; width:100%; object-fit:cover; display:block }
+  .game-meta{ padding:10px 12px; display:grid; gap:6px }
+  .game-title{ font-weight:700 }
+  .badges{ display:flex; gap:6px; flex-wrap:wrap }
+  .badge{ font-size:12px; padding:2px 6px; border-radius:999px; border:1px solid var(--line); background:#f8fafc }
+  .price{ display:flex; gap:8px; align-items:center; font-weight:700 }  /* 这里也用来放“发售日/D-n” */
+  .off{ background:#84cc16; color:#0b1b05; padding:2px 6px; border-radius:6px; font-weight:800 }
+  .old{ color:#94a3b8; text-decoration:line-through }
+
+  /* 发售倒计时徽标 */
+  .soon{ background:#fee2e2; border-color:#fecaca; color:#991b1b; font-weight:800 }
+  .eta{ color:#475569; font-weight:600 }
+  .chips{ display:flex; flex-wrap:wrap; gap:8px }
+  .chip{ padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:#fff; font-size:14px; cursor:pointer }
+  .chip:hover{ background:#f1f5f9 }
+  .announce{ background:linear-gradient(135deg,#e0f2fe,#f5f3ff); border:1px solid #dbeafe; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:12px }
+</style>
+</head>
+<body>
+  
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+    const supabase = createClient(
+      'https://qjusboguowpyamitokjh.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q'
+    )
+
+    const authLink = document.getElementById('auth-link')
+
+    // 🔹 로그인 상태 확인
+    async function checkAuthStatus() {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        // 로그인 상태 ✅
+         const { data: profile, error } = await supabase
+        .from('Users')
+        .select('nickname')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+        authLink.textContent = `${profile?.nickname}`
+        authLink.href = '#'
+        authLink.addEventListener('click', async (e) => {
+          e.preventDefault()
+          await supabase.auth.signOut()
+          // 로그아웃 후 페이지 새로고침 or 이동
+          window.location.reload()
+        })
+      } else {
+        // 로그아웃 상태 ❌
+        authLink.textContent = '로그인'
+        authLink.href = '/login.html'
+      }
+    }
+
+    checkAuthStatus()
+  </script>
+
+
+<header>
+  <div class="nav">
+    <div class="left" style="display:flex;align-items:center">
+      <a class="brand" href="#"><div class="logo">🎮</div><div class="brand-name"><b>갓겜판독기</b></div></a>
+      <nav class="nav-links" aria-label="주요">
+        <a href="#">랭킹</a><a href="#">커뮤니티</a><a href="#">정보</a>
+      </nav>
+    </div>
+    <div class="search">
+      <form class="search-field" role="search" onsubmit="event.preventDefault(); onSearch()">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27a6 6 0 1 0-1.06 1.06l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>
+        <input id="q" type="search" placeholder="게임 ∨ 태그 ∨ 리뷰 검색" aria-label="검색어 입력">
+      </form>
+    </div>
+    <div class="actions"><a class="link" id="auth-link">로그인</a></div>
+  </div>
+</header>
+
+<main>
+  <!-- 顶部画廊 -->
+  <section class="cardbox">
+    <button class="nav-btn left"  id="prevBtn" aria-label="이전"><b>&lt;</b></button>
+    <div class="gallery" aria-label="갤러리">
+      <figure class="side left"><img id="imgLeft"   src="2.jpg" alt="left"  loading="lazy"></figure>
+      <figure class="center">     <img id="imgCenter" src="1.jpg" alt="center"></figure>
+      <figure class="side right"><img id="imgRight"  src="3.jpg" alt="right" loading="lazy"></figure>
+    </div>
+    <button class="nav-btn right" id="nextBtn" aria-label="다음"><b>&gt;</b></button>
+  </section>
+
+  <!-- 本周人气 -->
+  <section class="section">
+    <h2>🔥 이번 주 인기 게임</h2>
+    <div class="game-grid" id="gameGrid"></div>
+    <template id="gameCardTpl">
+      <article class="game-card">
+        <a class="link" href="#"><img class="game-cover" src="" alt=""></a>
+        <div class="game-meta">
+          <div class="game-title"></div>
+          <div class="badges"></div>
+          <div class="price"></div>
+        </div>
+      </article>
+    </template>
+  </section>
+
+  <!-- 新增：即将发售 -->
+  <section class="section">
+    <h2>⏳ 출시 예정작</h2>
+    <div class="game-grid" id="upcomingGrid"></div>
+    <!-- 复用同一个模板 gameCardTpl -->
+  </section>
+
+  <!-- 标签云 -->
+  <section class="section">
+    <h2>🏷️ 인기 태그</h2>
+    <div class="chips">
+      <button class="chip">액션</button><button class="chip">RPG</button>
+      <button class="chip">로그라이크</button><button class="chip">멀티</button>
+      <button class="chip">협동</button><button class="chip">인디</button>
+      <button class="chip">PS5</button><button class="chip">Steam</button>
+    </div>
+  </section>
+
+  <!-- 公告 -->
+  <section class="section">
+    <div class="announce"><strong>🎁 주간 이벤트:</strong> 이번 주 ‘인디 위크’ 스크린샷 공모! 우승자에게 Steam 기프트 ₩20,000</div>
+  </section>
+</main>
+
+<script>
+  /* 搜索提交 */
+  function onSearch(){
+    const q = document.getElementById('q').value.trim();
+    if(!q) return;
+    location.href = `/search?q=${encodeURIComponent(q)}`;
+  }
+
+  /* 顶部画廊：上一张 / 下一张 */
+  const images = ['1.jpg','2.jpg','3.jpg','4.jpg','5.jpg','6.jpg'];
+  let current = 0;
+  const imgLeft = document.getElementById('imgLeft');
+  const imgCenter = document.getElementById('imgCenter');
+  const imgRight = document.getElementById('imgRight');
+
+  function render(){
+    const n = images.length;
+    imgCenter.src = images[current];
+    imgLeft.src   = images[(current - 1 + n) % n];
+    imgRight.src  = images[(current + 1) % n];
+  }
+  document.getElementById('prevBtn').addEventListener('click', ()=>{ current = (current - 1 + images.length) % images.length; render(); });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{ current = (current + 1) % images.length; render(); });
+  render();
+
+  /* ========== 数据：本周人气 ========== */
+  const popularGames = [
+    { slug:'elden-ring',     title:'ELDEN RING',    cover:'1.jpg', tags:['액션 RPG','Steam','메타 94'], price:64800, discount:30 },
+    { slug:'hades-2',        title:'Hades II (EA)', cover:'2.jpg', tags:['로그라이크','핫한'],          price:29800, discount:0  },
+    { slug:'stellar-blade',  title:'Stellar Blade', cover:'3.jpg', tags:['PS5','액션'],                 price:62800, discount:20 },
+    { slug:'ready-or-not',   title:'Ready or Not',  cover:'4.jpg', tags:['전술 FPS','협동'],            price:53000, discount:50 },
+    { slug:'hades-2',        title:'Hades II (EA)', cover:'2.jpg', tags:['로그라이크','핫한'],          price:29800, discount:0  },
+    { slug:'stellar-blade',  title:'Stellar Blade', cover:'3.jpg', tags:['PS5','액션'],                 price:62800, discount:20 },
+    { slug:'elden-ring',     title:'ELDEN RING',    cover:'1.jpg', tags:['액션 RPG','Steam','메타 94'], price:64800, discount:30 }
+  ];
+  const formatKRW = n => new Intl.NumberFormat('ko-KR').format(n);
+
+  function renderPopular(){
+    const grid = document.getElementById('gameGrid');
+    const tpl  = document.getElementById('gameCardTpl');
+    grid.innerHTML = '';
+    for (const g of popularGames) {
+      const node = tpl.content.firstElementChild.cloneNode(true);
+
+      node.querySelector('.link').href = `/game/${g.slug}`;
+      const img = node.querySelector('.game-cover'); img.src = g.cover; img.alt = `${g.title} 커버`;
+      node.querySelector('.game-title').textContent = g.title;
+
+      const badges = node.querySelector('.badges'); badges.innerHTML = '';
+      g.tags.forEach(t => { const s = document.createElement('span'); s.className='badge'; s.textContent=t; badges.appendChild(s); });
+
+      const priceBox = node.querySelector('.price');
+      if (g.discount > 0) {
+        const newPrice = Math.round(g.price * (100 - g.discount) / 100);
+        priceBox.innerHTML = `<span class="off">-${g.discount}%</span><span class="old">₩ ${formatKRW(g.price)}</span><span>₩ <b>${formatKRW(newPrice)}</b></span>`;
+      } else {
+        priceBox.innerHTML = `₩ <b>${formatKRW(g.price)}</b>`;
+      }
+
+      grid.appendChild(node);
+    }
+  }
+  renderPopular();
+
+  /* ========== 数据：即将发售 ========== */
+  const upcomingGames = [
+    { slug:'silksong',     title:'Hollow Knight: Silksong', cover:'5.jpg', tags:['메트로배니아','Indie'],   release:'2025-11-15' },
+    { slug:'black-myth',   title:'Black Myth: Wukong',      cover:'6.jpg', tags:['액션','Soulslike'],     release:'2025-12-03' },
+    { slug:'dragon-dogma2',title:'Dragon’s Dogma II DLC',   cover:'4.jpg', tags:['확장팩','RPG'],         release:'2025-10-28' },
+    { slug:'metaphor',     title:'Metaphor: ReFantazio',    cover:'3.jpg', tags:['JRPG','콘솔'],          release:'2025-09-20' }
+  ];
+
+  const pad2 = n => (n<10?'0':'') + n;
+  function formatDateKR(d){ // 2025-10-28 -> 2025.10.28
+    const dt = new Date(d);
+    return `${dt.getFullYear()}.${pad2(dt.getMonth()+1)}.${pad2(dt.getDate())}`;
+  }
+  function daysUntil(d){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const target = new Date(d); target.setHours(0,0,0,0);
+    return Math.max(0, Math.ceil((target - today) / 86400000));
+  }
+
+  function renderUpcoming(){
+    const grid = document.getElementById('upcomingGrid');
+    const tpl  = document.getElementById('gameCardTpl'); // 复用同一模板
+    grid.innerHTML = '';
+    for (const g of upcomingGames){
+      const node = tpl.content.firstElementChild.cloneNode(true);
+
+      node.querySelector('.link').href = `/game/${g.slug}`;
+      const img = node.querySelector('.game-cover'); img.src = g.cover; img.alt = `${g.title} 커버`;
+      node.querySelector('.game-title').textContent = g.title;
+
+      const badges = node.querySelector('.badges'); badges.innerHTML = '';
+      g.tags.forEach(t => { const s = document.createElement('span'); s.className='badge'; s.textContent=t; badges.appendChild(s); });
+
+      const d = daysUntil(g.release);
+      node.querySelector('.price').innerHTML =
+        `<span class="badge soon">D-${d}</span><span class="eta">${formatDateKR(g.release)}</span>`;
+
+      grid.appendChild(node);
+    }
+  }
+  renderUpcoming();
+</script>
+
+</body>
+</html>

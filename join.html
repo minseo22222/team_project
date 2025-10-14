@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>회원 가입</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      min-height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      background: #97b3e1;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    .login-card {
+      width: min(92vw, 420px);
+      padding: 28px 24px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      display: grid; gap: 12px;
+    }
+    .login-card h2 { margin: 0 0 8px; font-size: 20px; text-align: center; }
+    .field { display: grid; gap: 6px; }
+    label { font-size: 14px; color: #333; }
+    *, *::before, *::after { box-sizing: border-box; }
+    input[type="text"], input[type="password"], input[type="email"]{
+      width: 100%; max-width: 100%; display: block;
+      padding: 10px 12px; border: 1px solid #d7dbe0; border-radius: 8px; font-size: 14px;
+      outline: none;
+    }
+    input:focus { border-color: #4c8bf5; box-shadow: 0 0 0 3px rgba(76,139,245,.15); }
+    .actions { display: flex; gap: 10px; margin-top: 24px; }
+    button {
+      flex: 1; padding: 10px 12px; background: rgb(69, 218, 218);
+      border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+    }
+    .links { margin-top: 4px; text-align: center; font-size: 14px; }
+    .links a { color: #3366cc; text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
+    .error { font-size: 12px; color: #c62828; display: none; }
+    @media (max-width: 360px) { .login-card { padding: 18px 14px; } }
+  </style>
+</head>
+<body>
+  <form class="login-card" id="joinForm" action="">
+    <h2>회원 가입하기</h2>
+
+    <div class="field">
+      <label for="uid">닉네임</label>
+      <input id="nickname" type="text" placeholder="닉네임입력" autocomplete="username" required />
+    </div>
+
+    <!-- 新增：邮箱 -->
+    <div class="field">
+      <label for="email">이메일</label>
+      <input id="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+      <small id="emailErr" class="error" role="alert" aria-live="assertive">이메일 형식을 입력하세요</small>
+    </div>
+
+    <div class="field">
+      <label for="pwd">비밀번호</label>
+      <input id="pwd" type="password" placeholder="password" autocomplete="new-password" required />
+    </div>
+
+    <div class="field">
+      <label for="pwd2">비밀번호 다시쓰기</label>
+      <input id="pwd2" type="password" placeholder="password 확인" autocomplete="new-password" required />
+      <small id="pwdErr" class="error" role="alert" aria-live="assertive">두 비밀번호가 일치하지 않습니다.</small>
+    </div>
+
+    <div class="actions">
+      <button type="submit">가입하기</button>
+    </div>
+
+    <div class="links">
+      <a href="passwordFinder.html">비밀번호 찾기</a>
+    </div>
+    <p id="message"></p>
+  </form>
+
+
+  <script type="module" src="/scripts/join.js"></script>
+<!--
+  <script>
+ 
+
+    // 简单邮箱正则（工程常用）
+    const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+    // 邮箱输入/失焦时即时校验
+    function validateEmailInline() {
+      const val = email.value.trim();
+      if (val === '' || isEmail(val)) {
+        emailErr.style.display = 'none';
+        return true;
+      } else {
+        emailErr.style.display = 'block';
+        return false;
+      }
+    }
+    email.addEventListener('input', validateEmailInline);
+    email.addEventListener('blur', validateEmailInline);
+
+    // 提交时统一校验
+    form.addEventListener('submit', function (e) {
+      // 默认隐藏旧错误
+      emailErr.style.display = 'none';
+      pwdErr.style.display = 'none';
+
+      // 1) 邮箱格式
+      const emailOk = isEmail(email.value.trim());
+      if (!emailOk) {
+        e.preventDefault();
+        emailErr.style.display = 'block';
+        email.focus();
+        return;
+      }
+
+      // 2) 两次密码一致
+      if (pwd.value !== pwd2.value) {
+        e.preventDefault();
+        pwdErr.style.display = 'block';
+        pwd2.focus();
+        return;
+      }
+
+      // 通过后：可选择真正提交或改为 fetch 异步提交
+      // e.preventDefault();
+      // fetch('/api/join', { method:'POST', body: new FormData(form) }).then(...)
+    });
+
+    // 输入时若变一致则清除错误
+    pwd2.addEventListener('input', () => {
+      if (pwd2.value === pwd.value) pwdErr.style.display = 'none';
+    });
+  </script>
+  
+-->
+</body>
+</html>

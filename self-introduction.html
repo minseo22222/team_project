@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>갓겜판독기 안내</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
     <style>
         /*배경창*/
         .window1{
@@ -30,6 +31,7 @@
             -webkit-text-fill-color: transparent; /* 兼容 Safari */
                     color: transparent;
             animation: rainbow-move 8s linear infinite;
+            font-family: "Nanum Pen Script", "Noto Sans KR", cursive;
         }
 
         @keyframes rainbow-move{
@@ -48,6 +50,7 @@
             0 0 12px rgba(5, 255, 59, 0.45),
             0 0 28px rgba(5, 255, 59, 0.45);
             font-size: 250%;
+            font-family: "Nanum Pen Script", "Noto Sans KR", cursive;
         }
         /*첫번째 뭐할수 있을까 부분 표를 정렬CSS*/
         /* ===== 亮眼列表（图标版） ===== */
@@ -91,7 +94,7 @@
             filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
         }
 
-        /* 为每个功能设置对应图标与主题色 */
+        /* ul1번*/
         .feature-list .i-info   { --emoji:"🎮"; --accent:#0ea5e9; } /* 游戏信息 */
         .feature-list .i-review { --emoji:"⭐"; --accent:#f59e0b; } /* 评价发布 */
         .feature-list .i-comment{ --emoji:"💬"; --accent:#6366f1; } /* 评论 */
@@ -114,17 +117,49 @@
         .title--neon-red{
             color:#ef4444;
             text-shadow:
-                0 1px 0 #fff,
-                0 0 12px rgba(239,68,68,.45),
-                0 0 28px rgba(239,68,68,.35);
+            0 1px 0 #fff,
+            0 0 12px rgba(239,68,68,.45),
+            0 0 28px rgba(239,68,68,.35);
             font-size: 250%;
+            font-family: "Nanum Pen Script", "Noto Sans KR", cursive;
         }
 
-        /* --- 禁止事项：为每项定义图标与强调色 --- */
+        /* --- ul2번 --- */
         .feature-list .i-politics{ --emoji:"🏛️"; --accent:#ef4444; } /* 정치 이야기 */
         .feature-list .i-adult   { --emoji:"🔞"; --accent:#f43f5e; } /* 음란물·폭력물 */
         .feature-list .i-abuse   { --emoji:"🤬"; --accent:#fb7185; } /* 언어폭력 */
         .feature-list .i-toxic   { --emoji:"🚫"; --accent:#ef4444; } /* 악성 댓글 */
+
+        .notice-pill{
+            display:inline-flex; align-items:center; gap:10px;
+            margin:48px auto; padding:10px 16px; border-radius:999px;
+            background: color-mix(in srgb, #10b981 12%, #fff);
+            border:1px solid color-mix(in srgb, #10b981 38%, #fff);
+            box-shadow:0 6px 16px rgba(16,185,129,.18);
+            font:600 16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",Arial,sans-serif;
+            color:#065f46;
+        }
+        .notice-pill .i{
+            width:28px; height:28px; border-radius:999px; display:grid; place-items:center;
+            background:#ecfdf5; box-shadow:inset 0 0 0 1px #a7f3d0;
+        }
+
+         /* ul3번 */
+        .feature-list .i-buyer     { --emoji:"🛒"; --accent:#06b6d4; }  /* 구매고민 */
+        .feature-list .i-match     { --emoji:"🤝"; --accent:#a78bfa; }  /* 동호찾기 */
+        .feature-list .i-strategy  { --emoji:"📝"; --accent:#10b981; }  /* 공략작성/찾기 */
+        .feature-list .i-highlight { --emoji:"🎬"; --accent:#f43f5e; }  /* 하이라이트 */
+        .feature-list .i-opinion { --emoji:"🗣️"; --accent:#22c55e; }    /* 게임평가 */
+
+        .title--neon-yellow{
+            color:#b9c519;
+            text-shadow:
+            0 1px 0 #fff,
+            0 0 12px rgba(240, 237, 36, 0.873),
+            0 0 28px rgba(240, 237, 36, 0.873);
+            font-size: 250%;
+            font-family: "Nanum Pen Script", "Noto Sans KR", cursive;
+        }
 
 
         
@@ -158,9 +193,19 @@
                         <li class="i-toxic">악성 댓글</li>
                     </ul>
                 </li>
+                <li>
+                    <h2 class="title--neon-yellow">이 사이트가 특히 잘 맞는 이용자</h2>
+                    <ul class="feature-list icons">
+                        <li class="i-buyer">게임을 살지 말지 고민 중인 플레이어</li>
+                        <li class="i-match">비슷한 게임 취향의 게이머를 찾고 싶은 플레이어</li>
+                        <li class="i-strategy">게임 공략을 만들거나 찾고 싶은 플레이어</li>
+                        <li class="i-highlight">하이라이트(명장면)을 공유하고 싶은 플레이어</li>
+                        <li class="i-opinion">게임에 대한 의견을 공유하고 싶은 플레이어</li>
+                    </ul>
+                </li>
             </ol>
         </div>
-        <p class="">종은 커뮤니티 환경을 유지하기 위해 같이 노력하시기 바랍니다.</p> 
+        <p class="notice-pill"><span class="i">🤝</span>좋은 커뮤니티 환경을 유지하기 위해 같이 노력하시기 바랍니다.</p>
         <!--<p><b>사이트 작성자</b> : 강철&emsp;박민서&emsp;조성범</p> -->
         
         

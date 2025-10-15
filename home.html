@@ -408,7 +408,7 @@
     /* 리스트 스타일 — 슬라이드 애니메이션을 위해 max-height 사용 */
     .menu {
       position: absolute;
-      left: -200%;
+      right: 0;
       top: calc(100% + 8px);
       width: 110px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
@@ -452,84 +452,6 @@
 
 <body>
 
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-    const supabase = createClient(
-      'https://qjusboguowpyamitokjh.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q'
-    )
-
-    const authLink = document.getElementById('auth-link')
-    const menu = document.getElementById('ddMenu')
-    const items = Array.from(menu.querySelectorAll('[role="menuitem"]'))
-
-    // 메뉴 열기/닫기 함수
-    function openMenu() {
-      menu.hidden = false
-      menu.classList.add('open')
-    }
-    function closeMenu() {
-      menu.classList.remove('open')
-      setTimeout(() => {
-        if (!menu.classList.contains('open')) menu.hidden = true
-      }, 230)
-    }
-
-    // 🔹 로그인 상태 확인
-    async function checkAuthStatus() {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (user) {
-        // ✅ 로그인 상태
-        const { data: profile, error } = await supabase
-          .from('Users')
-          .select('nickname')
-          .eq('user_id', user.id)
-          .maybeSingle()
-
-        authLink.textContent = `${profile?.nickname || '사용자'}`
-        authLink.href = '#'
-
-        // 클릭 시 메뉴 토글
-        authLink.addEventListener('click', (e) => {
-          e.stopPropagation()
-          if (menu.classList.contains('open')) closeMenu()
-          else openMenu()
-        })
-
-        // 메뉴 항목 클릭 이벤트 (한 번만 등록)
-        items.forEach((li) => {
-          li.addEventListener('click', async (e) => {
-            const text = li.textContent.trim()
-            if (text === '내정보') {
-              closeMenu()
-              // 예: 프로필 페이지 이동
-              window.location.href = '/profile.html'
-            } else if (text === '로그아웃') {
-              e.preventDefault()
-              await supabase.auth.signOut()
-              window.location.reload()
-            }
-          })
-        })
-
-        // 바깥 클릭 시 닫기
-        document.addEventListener('click', (e) => {
-          if (!menu.contains(e.target) && !authLink.contains(e.target)) closeMenu()
-        })
-      } else {
-        // ❌ 로그아웃 상태
-        authLink.textContent = '로그인'
-        authLink.href = '/login.html'
-      }
-    }
-
-    // 실행
-    checkAuthStatus()
-  </script>
-
-
   <header>
     <div class="nav">
       <div class="left" style="display:flex;align-items:center">
@@ -551,6 +473,7 @@
         </form>
       </div>
       <div class="actions">
+        <img id="user_profile">
         <a class="link" id="auth-link">로그인</a>
         <nav class="menu" id="ddMenu" role="menu" aria-labelledby="ddTrigger" hidden>
           <ul>
@@ -560,6 +483,7 @@
         </nav>
       </div>
     </div>
+    <script type="module" src="/scripts/home_user.js"></script>
   </header>
 
   <main>

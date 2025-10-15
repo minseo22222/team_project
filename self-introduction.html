@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>갓겜판독기 안내</title>
+    <style>
+        /*배경창*/
+        .window1{
+            position: relative;
+            width: min(96vw, calc(var(--center-w) + 2*var(--side-w) + 2*var(--gap) + 2*var(--edge-pad)));
+            padding-block: 16px;
+            padding-inline: 0;
+            margin: 40px 80px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 20px 48px rgba(0, 0, 0, .06);
+            text-align: center;
+        }
+        /*제목 테스트 CSS rainbow형태*/
+        .rainbow{
+            font: 900 64px/1.1 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+            display:inline-block;                 /* 多行也能用 */
+            background: linear-gradient(90deg,
+                #ff004c, #ff8a00, #ffcd00, #00e676, #00b0ff, #6200ea, #ff004c);
+            background-size: 400% 100%;           /* 放大以便滚动 */
+            -webkit-background-clip: text;
+                    background-clip: text;
+            -webkit-text-fill-color: transparent; /* 兼容 Safari */
+                    color: transparent;
+            animation: rainbow-move 8s linear infinite;
+        }
+
+        @keyframes rainbow-move{
+            from{ background-position: 0% 0; }
+            to  { background-position: 400% 0; }
+        }
+
+            /* 关怀：系统设置“减少动效”时停止动画 */
+        @media (prefers-reduced-motion: reduce){
+            .rainbow{ animation: none; }
+        }
+        .title--neon{
+            color:#14b8a6;
+            text-shadow:
+            0 1px 0 #fff,
+            0 0 12px rgba(5, 255, 59, 0.45),
+            0 0 28px rgba(5, 255, 59, 0.45);
+            font-size: 250%;
+        }
+        /*첫번째 뭐할수 있을까 부분 표를 정렬CSS*/
+        /* ===== 亮眼列表（图标版） ===== */
+        .feature-list{
+            list-style:none;
+            padding:0;
+            margin:24px auto 8px;
+            display:inline-flex;
+            flex-direction:column;
+            gap:14px;
+            text-align:left;
+            max-width:34rem;
+        }
+
+        .feature-list li{
+            position:relative;
+            padding:12px 16px 12px 56px;    /* 左侧留给图标 */
+            font:600 20px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
+            color:#111827;
+            background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.90));
+            border:1px solid #e5e7eb;
+            border-left:6px solid var(--accent, #60a5fa);  /* 每项不同的强调色 */
+            border-radius:14px;
+            box-shadow:0 8px 20px rgba(17,24,39,.06);
+            transition:transform .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .feature-list li:hover{
+            transform:translateY(-2px);
+            box-shadow:0 12px 28px rgba(17,24,39,.12);
+            background:#fff;
+        }
+
+        /* 图标：使用 emoji，兼容好、无需外部资源 */
+        .feature-list.icons li::before{
+            content: var(--emoji, "•");      /* 每项自定义 */
+            position:absolute;
+            left:16px; top:50%;
+            transform:translateY(-50%);
+            font-size:26px; line-height:1;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
+        }
+
+        /* 为每个功能设置对应图标与主题色 */
+        .feature-list .i-info   { --emoji:"🎮"; --accent:#0ea5e9; } /* 游戏信息 */
+        .feature-list .i-review { --emoji:"⭐"; --accent:#f59e0b; } /* 评价发布 */
+        .feature-list .i-comment{ --emoji:"💬"; --accent:#6366f1; } /* 评论 */
+        .feature-list .i-guide  { --emoji:"📝"; --accent:#10b981; } /* 攻略 */
+        .feature-list .i-dict   { --emoji:"📚"; --accent:#8b5cf6; } /* 词典/资料分享 */
+
+        /* 减少动效模式 */
+        @media (prefers-reduced-motion: reduce){
+            .feature-list li{ transition:none; }
+        }
+        .ol-reset{
+            list-style: none;   /* 不显示编号 */
+            padding-left: 0;    /* 去掉默认缩进 */
+            margin: 0;
+        }
+        .ol-reset > li{ margin: 0; }
+
+        /* --- 红色霓虹标题（与 title--neon 风格一致） --- */
+        /*이부분은 할수 없는 일 CSS양식*/
+        .title--neon-red{
+            color:#ef4444;
+            text-shadow:
+                0 1px 0 #fff,
+                0 0 12px rgba(239,68,68,.45),
+                0 0 28px rgba(239,68,68,.35);
+            font-size: 250%;
+        }
+
+        /* --- 禁止事项：为每项定义图标与强调色 --- */
+        .feature-list .i-politics{ --emoji:"🏛️"; --accent:#ef4444; } /* 정치 이야기 */
+        .feature-list .i-adult   { --emoji:"🔞"; --accent:#f43f5e; } /* 음란물·폭력물 */
+        .feature-list .i-abuse   { --emoji:"🤬"; --accent:#fb7185; } /* 언어폭력 */
+        .feature-list .i-toxic   { --emoji:"🚫"; --accent:#ef4444; } /* 악성 댓글 */
+
+
+        
+
+        
+
+    </style>
+</head>
+<body>
+    <!--이페이지는 홈페이지 -> 정보(이 사이트 소개하는 페이지) -->
+    <section class="window1">
+        <div>
+            <h2 class="rainbow">Welcome to 갓겜판독기</h2><img href="">   <!--제목 + 사이트 아이콘-->
+            <ol class="ol-reset">
+                <li>
+                    <h2 class="title--neon">이 사이트는 뭐할 수 있을까?</h2>
+                    <ul class="feature-list icons">
+                        <li class="i-info">게임정보 열람</li>
+                        <li class="i-review">게임평가 발표</li>
+                        <li class="i-comment">타인 평가 댓글</li>   
+                        <li class="i-guide">게임공략 작성/보기</li>
+                        <li class="i-dict">게임사전 나누기</li>
+                    </ul>
+                </li>
+                <li>
+                    <h2 class="title--neon-red">이 사이트에서 할 수 없는 일?</h2>
+                    <ul class="feature-list icons">
+                        <li class="i-politics">정치 이야기</li>
+                        <li class="i-adult">음란물·폭력물</li>
+                        <li class="i-abuse">언어폭력</li>
+                        <li class="i-toxic">악성 댓글</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+        <p class="">종은 커뮤니티 환경을 유지하기 위해 같이 노력하시기 바랍니다.</p> 
+        <!--<p><b>사이트 작성자</b> : 강철&emsp;박민서&emsp;조성범</p> -->
+        
+        
+    </section>
+</body>
+</html>

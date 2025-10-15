@@ -40,6 +40,7 @@ async function checkAuthStatus() {
         profile_img.src = profile.profile_image_url
         profile_img.width=40;
         profile_img.height=40;
+        profile_img.style="background-color: white; border-radius: 50%; object-fit: cover;"
         // 클릭 시 메뉴 토글
         authLink.addEventListener('click', (e) => {
             e.stopPropagation()

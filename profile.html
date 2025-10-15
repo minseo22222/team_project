@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로필</title>
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #97b3e1;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        .profile-card {
+            width: min(92vw, 600px);
+            padding: 28px 24px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+
+            display: flex;
+            /* 가로 정렬 */
+            align-items: center;
+            /* 수직 중앙 맞춤 */
+            gap: 16px;
+            /* 이미지와 텍스트 사이 간격 */
+        }
+
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border: 2px solid #d7dbe0;
+            flex-shrink: 0;
+            background-color: white;
+            /* 이미지 크기 고정 */
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            /* 글자 세로로 쌓이게 */
+            justify-content: center;
+            /* 카드 높이 기준 가운데 정렬 */
+        }
+
+        .profile-info h2 {
+            margin: 0 0 6px 0;
+            font-size: 20px;
+        }
+
+        .profile-info .info {
+            font-size: 16px;
+            color: #333;
+        }
+
+        button {
+            padding: 10px 12px;
+            background: rgb(69, 218, 218);
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .nickname-row {
+            display: flex;
+            /* 닉네임과 버튼 가로 정렬 */
+            align-items: center;
+            /* 수직 중앙 맞춤 */
+            gap: 8px;
+            /* 닉네임과 버튼 사이 간격 */
+        }
+
+        .nickname-row h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .nickname-row button {
+            padding: 4px 8px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            background-color: #4c8bf5;
+            color: white;
+            cursor: pointer;
+        }
+
+        .nickname-row button:hover {
+            background-color: #3a6fd8;
+        }
+
+        @media (max-width: 360px) {
+            .profile-card {
+                padding: 18px 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="profile-card">
+        <img id="profile_img" class="profile-img" src="/default_profile.png" alt="프로필 사진">
+        <div class="profile-info">
+            <div class="nickname-row">
+                <h2 id="nickname">사용자</h2>
+                <button id="editProfileBtn">내정보 수정</button>
+                <button id="logout">로그아웃</button>
+            </div>
+            <div class="info" id="email">이메일: example@example.com</div>
+        </div>
+    </div>
+    <script type="module" src="/scripts/profile.js"></script>
+</body>
+
+</html>

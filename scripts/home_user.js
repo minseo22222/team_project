@@ -71,7 +71,8 @@ async function checkAuthStatus() {
     } else {
         // ❌ 로그아웃 상태
         authLink.textContent = '로그인'
-        authLink.href = '/login.html'
+        const redirectTo=encodeURIComponent(window.location.pathname)
+        authLink.href = `/login.html?redirect=${redirectTo}`
     }
 }
 

@@ -10,13 +10,12 @@ async function loadProfile() {
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError) {
     console.error('사용자 인증 에러:', authError)
-    window.location.href = '/login.html'
+    window.location.href = '/home.html'
     return
   }
 
   if (!user) {
-    // 로그인 안된 상태 → 로그인 페이지로 이동
-    window.location.href = '/login.html'
+    window.location.href = '/home.html'
     return
   }
 

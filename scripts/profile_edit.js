@@ -15,9 +15,9 @@ async function loadProfile() {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError) {
         console.error('사용자 인증 에러:', authError)
-        return window.location.href = '/login.html'
+        return window.location.href = '/home.html'
     }
-    if (!user) return window.location.href = '/login.html'
+    if (!user) return window.location.href = '/home.html'
 
     const { data: profile, error } = await supabase
         .from('Users')

@@ -408,7 +408,7 @@
     /* 리스트 스타일 — 슬라이드 애니메이션을 위해 max-height 사용 */
     .menu {
       position: absolute;
-      right: 0;
+      left: -200%;
       top: calc(100% + 8px);
       width: 110px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
@@ -452,6 +452,84 @@
 
 <body>
 
+    <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+    const supabase = createClient(
+      'https://qjusboguowpyamitokjh.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q'
+    )
+
+    const authLink = document.getElementById('auth-link')
+    const menu = document.getElementById('ddMenu')
+    const items = Array.from(menu.querySelectorAll('[role="menuitem"]'))
+
+    // 메뉴 열기/닫기 함수
+    function openMenu() {
+      menu.hidden = false
+      menu.classList.add('open')
+    }
+    function closeMenu() {
+      menu.classList.remove('open')
+      setTimeout(() => {
+        if (!menu.classList.contains('open')) menu.hidden = true
+      }, 230)
+    }
+
+    // 🔹 로그인 상태 확인
+    async function checkAuthStatus() {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        // ✅ 로그인 상태
+        const { data: profile, error } = await supabase
+          .from('Users')
+          .select('nickname')
+          .eq('user_id', user.id)
+          .maybeSingle()
+
+        authLink.textContent = `${profile?.nickname || '사용자'}`
+        authLink.href = '#'
+
+        // 클릭 시 메뉴 토글
+        authLink.addEventListener('click', (e) => {
+          e.stopPropagation()
+          if (menu.classList.contains('open')) closeMenu()
+          else openMenu()
+        })
+
+        // 메뉴 항목 클릭 이벤트 (한 번만 등록)
+        items.forEach((li) => {
+          li.addEventListener('click', async (e) => {
+            const text = li.textContent.trim()
+            if (text === '내정보') {
+              closeMenu()
+              // 예: 프로필 페이지 이동
+              window.location.href = '/profile.html'
+            } else if (text === '로그아웃') {
+              e.preventDefault()
+              await supabase.auth.signOut()
+              window.location.reload()
+            }
+          })
+        })
+
+        // 바깥 클릭 시 닫기
+        document.addEventListener('click', (e) => {
+          if (!menu.contains(e.target) && !authLink.contains(e.target)) closeMenu()
+        })
+      } else {
+        // ❌ 로그아웃 상태
+        authLink.textContent = '로그인'
+        authLink.href = '/login.html'
+      }
+    }
+
+    // 실행
+    checkAuthStatus()
+  </script>
+
+
   <header>
     <div class="nav">
       <div class="left" style="display:flex;align-items:center">
@@ -460,7 +538,7 @@
           <div class="brand-name"><b>갓겜판독기</b></div>
         </a>
         <nav class="nav-links" aria-label="주요">
-          <a href="#">랭킹</a><a href="#">커뮤니티</a><a href="self-introduction.html">정보</a>
+          <a href="#">랭킹</a><a href="#">커뮤니티</a><a href="#">정보</a>
         </nav>
       </div>
       <div class="search">
@@ -473,7 +551,6 @@
         </form>
       </div>
       <div class="actions">
-        <img id="user_profile">
         <a class="link" id="auth-link">로그인</a>
         <nav class="menu" id="ddMenu" role="menu" aria-labelledby="ddTrigger" hidden>
           <ul>
@@ -483,7 +560,6 @@
         </nav>
       </div>
     </div>
-    <script type="module" src="/scripts/home_user.js"></script>
   </header>
 
   <main>
@@ -538,13 +614,22 @@
     </section>
   </main>
 
-  <script>
+    <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+    const supabaseGames = createClient(
+      'https://qjusboguowpyamitokjh.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q'
+    )
+
     /* 搜索提交 */
     function onSearch() {
       const q = document.getElementById('q').value.trim();
       if (!q) return;
       location.href = `/search?q=${encodeURIComponent(q)}`;
     }
+
+    window.onSearch = onSearch
 
     /* 顶部画廊：上一张 / 下一张 */
     const images = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg'];
@@ -564,85 +649,113 @@
     render();
 
     /* ========== 数据：本周人气 ========== */
-    const popularGames = [
-      { slug: 'elden-ring', title: 'ELDEN RING', cover: '1.jpg', tags: ['액션 RPG', 'Steam', '메타 94'], price: 64800, discount: 30 },
-      { slug: 'hades-2', title: 'Hades II (EA)', cover: '2.jpg', tags: ['로그라이크', '핫한'], price: 29800, discount: 0 },
-      { slug: 'stellar-blade', title: 'Stellar Blade', cover: '3.jpg', tags: ['PS5', '액션'], price: 62800, discount: 20 },
-      { slug: 'ready-or-not', title: 'Ready or Not', cover: '4.jpg', tags: ['전술 FPS', '협동'], price: 53000, discount: 50 },
-      { slug: 'hades-2', title: 'Hades II (EA)', cover: '2.jpg', tags: ['로그라이크', '핫한'], price: 29800, discount: 0 },
-      { slug: 'stellar-blade', title: 'Stellar Blade', cover: '3.jpg', tags: ['PS5', '액션'], price: 62800, discount: 20 },
-      { slug: 'elden-ring', title: 'ELDEN RING', cover: '1.jpg', tags: ['액션 RPG', 'Steam', '메타 94'], price: 64800, discount: 30 }
-    ];
+    /* ========== 데이터: 이번 주 인기 ========== */
+    async function loadPopularGames() {
+      const today = new Date().toISOString().split('T')[0]
+      
+      const { data } = await supabaseGames
+        .from('Games')
+        .select('*')
+        .lte('release_date', today)  // ← 출시일이 오늘 이전 (이미 출시됨)
+        .order('recommended_count', { ascending: false })  // ← 추천 많은 순
+        .limit(6)
+      
+      if (data && data.length > 0) {
+        renderPopular(data)
+      } 
+    }
+
     const formatKRW = n => new Intl.NumberFormat('ko-KR').format(n);
 
-    function renderPopular() {
+    function renderPopular(games) {
       const grid = document.getElementById('gameGrid');
       const tpl = document.getElementById('gameCardTpl');
       grid.innerHTML = '';
-      for (const g of popularGames) {
+      for (const g of games) {
         const node = tpl.content.firstElementChild.cloneNode(true);
 
-        node.querySelector('.link').href = `/game/${g.slug}`;
-        const img = node.querySelector('.game-cover'); img.src = g.cover; img.alt = `${g.title} 커버`;
+        node.querySelector('.link').href = `/game.html?id=${g.slug}`;
+        const img = node.querySelector('.game-cover'); 
+        img.src = g.cover_image_url || '1.jpg';
+        img.alt = `${g.title} 커버`;
+
         node.querySelector('.game-title').textContent = g.title;
 
-        const badges = node.querySelector('.badges'); badges.innerHTML = '';
-        g.tags.forEach(t => { const s = document.createElement('span'); s.className = 'badge'; s.textContent = t; badges.appendChild(s); });
+        const badges = node.querySelector('.badges');
+        badges.innerHTML = '';
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = g.genre || '장르';
+        badges.appendChild(badge);
 
         const priceBox = node.querySelector('.price');
-        if (g.discount > 0) {
-          const newPrice = Math.round(g.price * (100 - g.discount) / 100);
-          priceBox.innerHTML = `<span class="off">-${g.discount}%</span><span class="old">₩ ${formatKRW(g.price)}</span><span>₩ <b>${formatKRW(newPrice)}</b></span>`;
-        } else {
-          priceBox.innerHTML = `₩ <b>${formatKRW(g.price)}</b>`;
-        }
+        priceBox.innerHTML = `<span>${g.developer || '개발사 정보 없음'}</span>`;
 
         grid.appendChild(node);
       }
     }
-    renderPopular();
+    loadPopularGames();
 
     /* ========== 数据：即将发售 ========== */
-    const upcomingGames = [
-      { slug: 'silksong', title: 'Hollow Knight: Silksong', cover: '5.jpg', tags: ['메트로배니아', 'Indie'], release: '2025-11-15' },
-      { slug: 'black-myth', title: 'Black Myth: Wukong', cover: '6.jpg', tags: ['액션', 'Soulslike'], release: '2025-12-03' },
-      { slug: 'dragon-dogma2', title: 'Dragon’s Dogma II DLC', cover: '4.jpg', tags: ['확장팩', 'RPG'], release: '2025-10-28' },
-      { slug: 'metaphor', title: 'Metaphor: ReFantazio', cover: '3.jpg', tags: ['JRPG', '콘솔'], release: '2025-09-20' }
-    ];
+    async function loadUpcomingGames() {
+      const today = new Date().toISOString().split('T')[0] // 오늘 날짜
+      
+      const { data } = await supabaseGames
+        .from('Games')
+        .select('*')
+        .gte('release_date', today)  // 출시일이 오늘 이후
+        .order('release_date', { ascending: true })
+        .limit(6)
+      
+      if (data && data.length > 0) {
+        renderUpcoming(data)
+      }
+    }
 
     const pad2 = n => (n < 10 ? '0' : '') + n;
-    function formatDateKR(d) { // 2025-10-28 -> 2025.10.28
-      const dt = new Date(d);
-      return `${dt.getFullYear()}.${pad2(dt.getMonth() + 1)}.${pad2(dt.getDate())}`;
+    function formatDateKR(d) {
+      if (!d) return '';
+      
+      // 문자열 날짜를 직접 파싱 (YYYY-MM-DD 형식)
+      const [year, month, day] = d.split('-');
+      return `${year}.${month}.${day}`;
     }
+
     function daysUntil(d) {
       const today = new Date(); today.setHours(0, 0, 0, 0);
       const target = new Date(d); target.setHours(0, 0, 0, 0);
       return Math.max(0, Math.ceil((target - today) / 86400000));
     }
 
-    function renderUpcoming() {
+    function renderUpcoming(games) {
       const grid = document.getElementById('upcomingGrid');
       const tpl = document.getElementById('gameCardTpl'); // 复用同一模板
       grid.innerHTML = '';
-      for (const g of upcomingGames) {
+      for (const g of games) {
         const node = tpl.content.firstElementChild.cloneNode(true);
 
-        node.querySelector('.link').href = `/game/${g.slug}`;
+        node.querySelector('.link').href = `/game.html?id=${g.slug}`;
         const img = node.querySelector('.game-cover'); img.src = g.cover; img.alt = `${g.title} 커버`;
         node.querySelector('.game-title').textContent = g.title;
 
         const badges = node.querySelector('.badges'); badges.innerHTML = '';
-        g.tags.forEach(t => { const s = document.createElement('span'); s.className = 'badge'; s.textContent = t; badges.appendChild(s); });
 
-        const d = daysUntil(g.release);
+        const tags = g.tags || [g.genre]  // tags 없으면 genre 사용
+        tags.forEach(t => { 
+          const s = document.createElement('span')
+          s.className = 'badge'
+          s.textContent = t
+          badges.appendChild(s)
+        })
+
+        const d = daysUntil(g.release_date);
         node.querySelector('.price').innerHTML =
           `<span class="badge soon">D-${d}</span><span class="eta">${formatDateKR(g.release)}</span>`;
 
         grid.appendChild(node);
       }
     }
-    renderUpcoming();
+    loadUpcomingGames();
   </script>
 
 </body>

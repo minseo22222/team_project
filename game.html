@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>게임 상세 - 갓겜판독기</title>
+
+  <style>
+    :root {
+      --nav-h: 64px;
+      --bg: #fff;
+      --ink: #111827;
+      --ink-2: #475569;
+      --brand: #0ea5e9;
+      --line: #e5e7eb;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      margin: 0
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f8fafc;
+      color: var(--ink);
+    }
+
+    /* 상단 네비게이션 */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      height: var(--nav-h);
+      background: #7deced;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+    }
+
+    .nav {
+      max-width: 1200px;
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+
+    .brand .logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #e2f2ff;
+      color: #0ea5e9;
+      font-weight: 700;
+    }
+
+    .brand-name {
+      font-weight: 800;
+      letter-spacing: .2px
+    }
+
+    /* 메인 컨텐츠 */
+    main {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px
+    }
+
+    /* 로딩 상태 */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      font-size: 18px;
+      color: var(--ink-2);
+    }
+
+    /* 게임 헤더 섹션 */
+    .game-header {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+    }
+
+    .game-header-content {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .game-cover-large {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .15);
+    }
+
+    .game-info h1 {
+      margin: 0 0 16px;
+      font-size: 32px;
+      font-weight: 800;
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      font-weight: 600;
+    }
+
+    .price-box {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+
+    .price-label {
+      font-size: 14px;
+      color: var(--ink-2);
+      margin-bottom: 8px;
+    }
+
+    .price {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .off {
+      background: #84cc16;
+      color: #0b1b05;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 20px;
+    }
+
+    .old {
+      color: #94a3b8;
+      text-decoration: line-through;
+      font-size: 20px;
+    }
+
+    .description {
+      line-height: 1.6;
+      color: var(--ink-2);
+      margin-top: 20px;
+    }
+
+    /* 상세 정보 섹션 */
+    .details-section {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+    }
+
+    .details-section h2 {
+      margin: 0 0 20px;
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .detail-item {
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+    }
+
+    .detail-label {
+      font-size: 13px;
+      color: var(--ink-2);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .detail-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* 반응형 */
+    @media (max-width: 900px) {
+      .game-header-content {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .game-cover-large {
+        max-width: 100%;
+      }
+
+      .game-info h1 {
+        font-size: 24px;
+      }
+    }
+
+    /* 에러 메시지 */
+    .error {
+      text-align: center;
+      padding: 60px 20px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+    }
+
+    .error h2 {
+      color: #dc2626;
+      margin-bottom: 12px;
+    }
+
+    .error a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .error a:hover {
+      text-decoration: underline;
+    }
+    .nav-links {
+    display: flex;
+    gap: 18px;
+    margin-left: 16px;
+    white-space: nowrap
+  }
+
+  .nav-links a {
+    color: var(--ink-2);
+    text-decoration: none;
+    font-weight: 600
+  }
+
+  .nav-links a:hover {
+    color: var(--ink)
+  }
+
+  .search {
+    display: flex;
+    justify-content: center
+  }
+
+  .search-field {
+    width: min(56vw, 560px);
+    position: relative
+  }
+
+  .search-field input {
+    width: 100%;
+    height: 40px;
+    padding: 0 14px 0 36px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    outline: none;
+    background: #fff;
+    font-size: 14px;
+  }
+
+  .search-field input:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .15)
+  }
+
+  .search-field .icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    opacity: .6
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    position: relative
+  }
+
+  .link {
+    color: var(--ink-2);
+    text-decoration: none;
+    font-weight: 600
+  }
+
+  .link:hover {
+    color: var(--ink);
+    text-decoration: underline
+  }
+
+  .menu {
+    position: absolute;
+    left: -200%;
+    top: calc(100% + 8px);
+    width: 110px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    background: white;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 220ms ease, opacity 150ms ease;
+    opacity: 0;
+    padding: 0;
+    box-sizing: border-box;
+    z-index: 100;
+  }
+
+  .menu.open {
+    max-height: 400px;
+    opacity: 1;
+    padding: 8px 0;
+  }
+
+  .menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .menu li {
+    padding: 10px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .menu li:hover {
+    background: #f2f4f7;
+  }
+    </style>
+</head>
+
+<body>
+  <!-- 상단 네비게이션 -->
+  <header>
+    <div class="nav">
+      <div class="left" style="display:flex;align-items:center">
+        <a class="brand" href="/home.html">
+          <div class="logo">🎮</div>
+          <div class="brand-name"><b>갓겜판독기</b></div>
+        </a>
+        <nav class="nav-links" aria-label="주요">
+          <a href="#">랭킹</a><a href="#">커뮤니티</a><a href="#">정보</a>
+        </nav>
+      </div>
+      <div class="search">
+        <form class="search-field" role="search" onsubmit="event.preventDefault(); onSearch()">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15.5 14h-.79l-.28-.27a6 6 0 1 0-1.06 1.06l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8z" />
+          </svg>
+          <input id="q" type="search" placeholder="게임 ∨ 태그 ∨ 리뷰 검색" aria-label="검색어 입력">
+        </form>
+      </div>
+      <div class="actions">
+        <a class="link" id="auth-link">로그인</a>
+        <nav class="menu" id="ddMenu" role="menu" aria-labelledby="ddTrigger" hidden>
+          <ul>
+            <li role="menuitem" tabindex="0">내정보</li>
+            <li role="menuitem" tabindex="1">로그아웃</li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+</header>
+
+  <main>
+    <!-- 로딩 표시 -->
+    <div class="loading" id="loading">
+      게임 정보를 불러오는 중...
+    </div>
+
+    <!-- 게임 상세 내용 (동적 생성) -->
+    <div id="gameContent" style="display: none;"></div>
+
+    <!-- 에러 메시지 -->
+    <div class="error" id="error" style="display: none;">
+      <h2>⚠️ 게임을 찾을 수 없습니다</h2>
+      <p>요청하신 게임 정보를 찾을 수 없습니다.</p>
+      <a href="/home.html">← 홈으로 돌아가기</a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+    const supabase = createClient(
+      'https://qjusboguowpyamitokjh.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q'
+    )
+
+    const authLink = document.getElementById('auth-link')
+    const menu = document.getElementById('ddMenu')
+    const items = Array.from(menu.querySelectorAll('[role="menuitem"]'))
+
+    function openMenu() {
+      menu.hidden = false
+      menu.classList.add('open')
+    }
+    function closeMenu() {
+      menu.classList.remove('open')
+      setTimeout(() => {
+        if (!menu.classList.contains('open')) menu.hidden = true
+      }, 230)
+    }
+
+    async function checkAuthStatus() {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('Users')
+          .select('nickname')
+          .eq('user_id', user.id)
+          .maybeSingle()
+
+        authLink.textContent = `${profile?.nickname || '사용자'}`
+        authLink.href = '#'
+
+        authLink.addEventListener('click', (e) => {
+          e.stopPropagation()
+          if (menu.classList.contains('open')) closeMenu()
+          else openMenu()
+        })
+
+        items.forEach((li) => {
+          li.addEventListener('click', async (e) => {
+            const text = li.textContent.trim()
+            if (text === '내정보') {
+              closeMenu()
+              window.location.href = '/profile.html'
+            } else if (text === '로그아웃') {
+              e.preventDefault()
+              await supabase.auth.signOut()
+              window.location.reload()
+            }
+          })
+        })
+
+        document.addEventListener('click', (e) => {
+          if (!menu.contains(e.target) && !authLink.contains(e.target)) closeMenu()
+        })
+      } else {
+        authLink.textContent = '로그인'
+        authLink.href = '/login.html'
+      }
+    }
+
+    checkAuthStatus()
+
+// 검색 함수
+function onSearch() {
+  const q = document.getElementById('q').value.trim();
+  if (!q) return;
+  location.href = `/search?q=${encodeURIComponent(q)}`;
+}
+window.onSearch = onSearch
+
+    const loading = document.getElementById('loading')
+    const error = document.getElementById('error')
+    const gameContent = document.getElementById('gameContent')
+
+    // URL에서 게임 ID 추출
+    const params = new URLSearchParams(window.location.search)
+    const gameId = params.get('id')
+
+    if (!gameId) {
+      loading.style.display = 'none'
+      error.style.display = 'block'
+    } else {
+      loadGameData()
+    }
+
+    async function loadGameData() {
+      try {
+        // Supabase에서 게임 데이터 조회
+        const { data: game, error: dbError } = await supabase
+          .from('Games')
+          .select('*')
+          .eq('slug', gameId)
+          .single()
+
+        if (dbError || !game) {
+          throw new Error('게임을 찾을 수 없습니다')
+        }
+
+        // 페이지 렌더링
+        renderGame(game)
+        loading.style.display = 'none'
+        gameContent.style.display = 'block'
+
+      } catch (err) {
+        console.error('Error loading game:', err)
+        loading.style.display = 'none'
+        error.style.display = 'block'
+      }
+    }
+
+    function renderGame(game) {
+      const formatKRW = n => new Intl.NumberFormat('ko-KR').format(n)
+
+      // 가격 계산
+      let priceHTML = ''
+      if (game.discount && game.discount > 0) {
+        const newPrice = Math.round(game.price * (100 - game.discount) / 100)
+        priceHTML = `
+          <div class="price">
+            <span class="off">-${game.discount}%</span>
+            <span class="old">₩${formatKRW(game.price)}</span>
+            <span>₩${formatKRW(newPrice)}</span>
+          </div>
+        `
+      } else {
+        priceHTML = `
+          <div class="price">₩${formatKRW(game.price)}</div>
+        `
+      }
+
+      // 태그 배지
+      const tags = game.tags || []
+      const badgesHTML = tags.map(tag => `<span class="badge">${tag}</span>`).join('')
+
+      // 페이지 제목 설정
+      document.title = `${game.title} - 갓겜판독기`
+
+      gameContent.innerHTML = `
+        <!-- 게임 헤더 -->
+        <section class="game-header">
+          <div class="game-header-content">
+            <img class="game-cover-large" src="${game.cover || 'placeholder.jpg'}" alt="${game.title} 커버">
+            <div class="game-info">
+              <h1>${game.title}</h1>
+              <div class="badges">${badgesHTML}</div>
+              
+              <div class="price-box">
+                <div class="price-label">가격</div>
+                ${priceHTML}
+              </div>
+
+              <div class="description">
+                ${game.description || '게임 설명이 없습니다.'}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 상세 정보 -->
+        <section class="details-section">
+          <h2>📋 게임 정보</h2>
+          <div class="detail-grid">
+            ${game.developer ? `
+              <div class="detail-item">
+                <div class="detail-label">개발사</div>
+                <div class="detail-value">${game.developer}</div>
+              </div>
+            ` : ''}
+            ${game.publisher ? `
+              <div class="detail-item">
+                <div class="detail-label">퍼블리셔</div>
+                <div class="detail-value">${game.publisher}</div>
+              </div>
+            ` : ''}
+            ${game.release_date ? `
+              <div class="detail-item">
+                <div class="detail-label">출시일</div>
+                <div class="detail-value">${game.release_date}</div>
+              </div>
+            ` : ''}
+            ${game.platform ? `
+              <div class="detail-item">
+                <div class="detail-label">플랫폼</div>
+                <div class="detail-value">${game.platform}</div>
+              </div>
+            ` : ''}
+            ${game.genre ? `
+              <div class="detail-item">
+                <div class="detail-label">장르</div>
+                <div class="detail-value">${game.genre}</div>
+              </div>
+            ` : ''}
+            ${game.metacritic_score ? `
+              <div class="detail-item">
+                <div class="detail-label">메타크리틱</div>
+                <div class="detail-value">${game.metacritic_score}점</div>
+              </div>
+            ` : ''}
+          </div>
+        </section>
+      `
+    }
+  </script>
+</body>
+
+</html>

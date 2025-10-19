@@ -1,0 +1,51 @@
+<main>
+    <!-- 顶部画廊 -->
+    <section class="cardbox">
+        <button class="nav-btn left" id="prevBtn" aria-label="이전"><b>&lt;</b></button>
+        <div class="gallery" aria-label="갤러리">
+            <figure class="side left"><img id="imgLeft" src="2.jpg" alt="left" loading="lazy"></figure>
+            <figure class="center"> <img id="imgCenter" src="1.jpg" alt="center"></figure>
+            <figure class="side right"><img id="imgRight" src="3.jpg" alt="right" loading="lazy"></figure>
+        </div>
+        <button class="nav-btn right" id="nextBtn" aria-label="다음"><b>&gt;</b></button>
+    </section>
+
+    <!-- 本周人气 -->
+    <section class="section">
+        <h2>🔥 이번 주 인기 게임</h2>
+        <div class="game-grid" id="gameGrid"></div>
+        <template id="gameCardTpl">
+            <article class="game-card">
+                <a class="link" href="#"><img class="game-cover" src="" alt=""></a>
+                <div class="game-meta">
+                    <div class="game-title"></div>
+                    <div class="badges"></div>
+                    <div class="price"></div>
+                </div>
+            </article>
+        </template>
+    </section>
+
+    <!-- 新增：即将发售 -->
+    <section class="section">
+        <h2>⏳ 출시 예정작</h2>
+        <div class="game-grid" id="upcomingGrid"></div>
+        <!-- 复用同一个模板 gameCardTpl -->
+    </section>
+
+    <!-- 标签云 -->
+    <section class="section">
+        <h2>🏷️ 인기 태그</h2>
+        <div class="chips">
+            <button class="chip">액션</button><button class="chip">RPG</button>
+            <button class="chip">로그라이크</button><button class="chip">멀티</button>
+            <button class="chip">협동</button><button class="chip">인디</button>
+            <button class="chip">PS5</button><button class="chip">Steam</button>
+        </div>
+    </section>
+
+    <!-- 公告 -->
+    <section class="section">
+        <div class="announce"><strong>🎁 주간 이벤트:</strong> 이번 주 ‘인디 위크’ 스크린샷 공모! 우승자에게 Steam 기프트 ₩20,000</div>
+    </section>
+</main>

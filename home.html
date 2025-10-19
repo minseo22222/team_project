@@ -408,7 +408,7 @@
     /* 리스트 스타일 — 슬라이드 애니메이션을 위해 max-height 사용 */
     .menu {
       position: absolute;
-      left: -200%;
+      right: 0;
       top: calc(100% + 8px);
       width: 110px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
@@ -451,116 +451,24 @@
 </head>
 
 <body>
+  <!--header-->
+  <div id="header"></div>
 
-    <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-    const supabase = createClient(
-      'https://qjusboguowpyamitokjh.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q'
-    )
-
-    const authLink = document.getElementById('auth-link')
-    const menu = document.getElementById('ddMenu')
-    const items = Array.from(menu.querySelectorAll('[role="menuitem"]'))
-
-    // 메뉴 열기/닫기 함수
-    function openMenu() {
-      menu.hidden = false
-      menu.classList.add('open')
-    }
-    function closeMenu() {
-      menu.classList.remove('open')
-      setTimeout(() => {
-        if (!menu.classList.contains('open')) menu.hidden = true
-      }, 230)
-    }
-
-    // 🔹 로그인 상태 확인
-    async function checkAuthStatus() {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (user) {
-        // ✅ 로그인 상태
-        const { data: profile, error } = await supabase
-          .from('Users')
-          .select('nickname')
-          .eq('user_id', user.id)
-          .maybeSingle()
-
-        authLink.textContent = `${profile?.nickname || '사용자'}`
-        authLink.href = '#'
-
-        // 클릭 시 메뉴 토글
-        authLink.addEventListener('click', (e) => {
-          e.stopPropagation()
-          if (menu.classList.contains('open')) closeMenu()
-          else openMenu()
-        })
-
-        // 메뉴 항목 클릭 이벤트 (한 번만 등록)
-        items.forEach((li) => {
-          li.addEventListener('click', async (e) => {
-            const text = li.textContent.trim()
-            if (text === '내정보') {
-              closeMenu()
-              // 예: 프로필 페이지 이동
-              window.location.href = '/profile.html'
-            } else if (text === '로그아웃') {
-              e.preventDefault()
-              await supabase.auth.signOut()
-              window.location.reload()
-            }
-          })
-        })
-
-        // 바깥 클릭 시 닫기
-        document.addEventListener('click', (e) => {
-          if (!menu.contains(e.target) && !authLink.contains(e.target)) closeMenu()
-        })
-      } else {
-        // ❌ 로그아웃 상태
-        authLink.textContent = '로그인'
-        authLink.href = '/login.html'
-      }
-    }
-
-    // 실행
-    checkAuthStatus()
+  <script type="module">
+    fetch('components/header.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('header').innerHTML = html;
+        const redirectURL = document.getElementById('redirect');
+        redirectURL.textContent = window.location.href; //로그인 후 복귀할 주소
+        // 외부 JS 추가 실행
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'scripts/header_user.js';
+        document.body.appendChild(script);
+      });
   </script>
-
-
-  <header>
-    <div class="nav">
-      <div class="left" style="display:flex;align-items:center">
-        <a class="brand" href="#">
-          <div class="logo">🎮</div>
-          <div class="brand-name"><b>갓겜판독기</b></div>
-        </a>
-        <nav class="nav-links" aria-label="주요">
-          <a href="#">랭킹</a><a href="#">커뮤니티</a><a href="#">정보</a>
-        </nav>
-      </div>
-      <div class="search">
-        <form class="search-field" role="search" onsubmit="event.preventDefault(); onSearch()">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M15.5 14h-.79l-.28-.27a6 6 0 1 0-1.06 1.06l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8z" />
-          </svg>
-          <input id="q" type="search" placeholder="게임 ∨ 태그 ∨ 리뷰 검색" aria-label="검색어 입력">
-        </form>
-      </div>
-      <div class="actions">
-        <a class="link" id="auth-link">로그인</a>
-        <nav class="menu" id="ddMenu" role="menu" aria-labelledby="ddTrigger" hidden>
-          <ul>
-            <li role="menuitem" tabindex="0">내정보</li>
-            <li role="menuitem" tabindex="1">로그아웃</li>
-          </ul>
-        </nav>
-      </div>
-    </div>
-  </header>
+  <!--/header-->
 
   <main>
     <!-- 顶部画廊 -->
@@ -614,13 +522,8 @@
     </section>
   </main>
 
-    <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-    const supabaseGames = createClient(
-      'https://qjusboguowpyamitokjh.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q'
-    )
+  <script type="module">
+    import supabase from './scripts/supabase.js';
 
     /* 搜索提交 */
     function onSearch() {
@@ -628,7 +531,6 @@
       if (!q) return;
       location.href = `/search?q=${encodeURIComponent(q)}`;
     }
-
     window.onSearch = onSearch
 
     /* 顶部画廊：上一张 / 下一张 */
@@ -652,19 +554,18 @@
     /* ========== 데이터: 이번 주 인기 ========== */
     async function loadPopularGames() {
       const today = new Date().toISOString().split('T')[0]
-      
-      const { data } = await supabaseGames
+
+      const { data } = await supabase
         .from('Games')
         .select('*')
         .lte('release_date', today)  // ← 출시일이 오늘 이전 (이미 출시됨)
         .order('recommended_count', { ascending: false })  // ← 추천 많은 순
         .limit(6)
-      
+
       if (data && data.length > 0) {
         renderPopular(data)
-      } 
+      }
     }
-
     const formatKRW = n => new Intl.NumberFormat('ko-KR').format(n);
 
     function renderPopular(games) {
@@ -675,7 +576,7 @@
         const node = tpl.content.firstElementChild.cloneNode(true);
 
         node.querySelector('.link').href = `/game.html?id=${g.slug}`;
-        const img = node.querySelector('.game-cover'); 
+        const img = node.querySelector('.game-cover');
         img.src = g.cover_image_url || '1.jpg';
         img.alt = `${g.title} 커버`;
 
@@ -699,14 +600,14 @@
     /* ========== 数据：即将发售 ========== */
     async function loadUpcomingGames() {
       const today = new Date().toISOString().split('T')[0] // 오늘 날짜
-      
-      const { data } = await supabaseGames
+
+      const { data } = await supabase
         .from('Games')
         .select('*')
         .gte('release_date', today)  // 출시일이 오늘 이후
         .order('release_date', { ascending: true })
         .limit(6)
-      
+
       if (data && data.length > 0) {
         renderUpcoming(data)
       }
@@ -715,7 +616,7 @@
     const pad2 = n => (n < 10 ? '0' : '') + n;
     function formatDateKR(d) {
       if (!d) return '';
-      
+
       // 문자열 날짜를 직접 파싱 (YYYY-MM-DD 형식)
       const [year, month, day] = d.split('-');
       return `${year}.${month}.${day}`;
@@ -741,7 +642,7 @@
         const badges = node.querySelector('.badges'); badges.innerHTML = '';
 
         const tags = g.tags || [g.genre]  // tags 없으면 genre 사용
-        tags.forEach(t => { 
+        tags.forEach(t => {
           const s = document.createElement('span')
           s.className = 'badge'
           s.textContent = t

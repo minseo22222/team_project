@@ -10,24 +10,55 @@ function onSearch() {
 window.onSearch = onSearch
 
 /* 顶部画廊：上一张 / 下一张 */
-const images = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg'];
+/*GALLAY 부분*/
+async function fetchTop6Games() {
+  const { data, error } = await supabase
+    .from('Games')
+    .select('cover_image_url,title,slug')
+    .order('game_id', { ascending: false }) // id 기준으로 최신 6개 가져오기, 필요 없으면 제거
+    .limit(6);
+
+  if (error) {
+    console.error('Error fetching Games:', error);
+    return [];
+  }
+
+  return data;
+}
+
+const top6data= await fetchTop6Games();
+console.log(top6data);
+
+const images = top6data.map(item => item.cover_image_url);
+const titles= top6data.map(item => item.title)
+const slugs=top6data.map(item => item.slug)
+
+
+console.log(images);
 let current = 0;
 const imgLeft = document.getElementById('imgLeft');
 const imgCenter = document.getElementById('imgCenter');
 const imgRight = document.getElementById('imgRight');
+const centerCaption=document.getElementById('caption_center')
 
 function render() {
     const n = images.length;
     imgCenter.src = images[current];
     imgLeft.src = images[(current - 1 + n) % n];
     imgRight.src = images[(current + 1) % n];
+
+    centerCaption.textContent=titles[current];
+    
 }
 document.getElementById('prevBtn').addEventListener('click', () => { current = (current - 1 + images.length) % images.length; render(); });
 document.getElementById('nextBtn').addEventListener('click', () => { current = (current + 1) % images.length; render(); });
+document.getElementById('center_link').addEventListener('click', () => { window.location.href = `/game.html?id=${slugs[current]}`;});
+
+
 render();
 
 /* ========== 数据：本周人气 ========== */
-/* ========== 데이터: 이번 주 인기 ========== */
+/* ==========이번 주 인기 ========== */
 async function loadPopularGames() {
     const today = new Date().toISOString().split('T')[0]
 
@@ -112,7 +143,7 @@ function renderUpcoming(games) {
         const node = tpl.content.firstElementChild.cloneNode(true);
 
         node.querySelector('.link').href = `/game.html?id=${g.slug}`;
-        const img = node.querySelector('.game-cover'); img.src = g.cover; img.alt = `${g.title} 커버`;
+        const img = node.querySelector('.game-cover'); img.src = g.cover_image_url; img.alt = `${g.title} 커버`;
         node.querySelector('.game-title').textContent = g.title;
 
         const badges = node.querySelector('.badges'); badges.innerHTML = '';

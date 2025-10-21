@@ -2,9 +2,9 @@ import supabase from './supabase.js';
 
 // 검색 함수
 function onSearch() {
-    const q = document.getElementById('q').value.trim();
-    if (!q) return;
-    location.href = `/search?q=${encodeURIComponent(q)}`;
+  const q = document.getElementById('q').value.trim();
+  if (!q) return;
+  location.href = `/search?q=${encodeURIComponent(q)}`;
 }
 window.onSearch = onSearch
 
@@ -17,69 +17,133 @@ const params = new URLSearchParams(window.location.search)
 const gameId = params.get('id')
 
 if (!gameId) {
-    loading.style.display = 'none'
-    error.style.display = 'block'
+  loading.style.display = 'none'
+  error.style.display = 'block'
 } else {
-    loadGameData()
+  loadGameData()
 }
+async function getImageUrls(storage_path) { //이미지url 배열 반환 함수
+  // ① 스토리지 버킷 이름과 폴더 지정
+  const bucket = 'games'        // 버킷 이름
+  const folderPath = storage_path + '/'      // 폴더 경로 (없으면 '')
+
+  // ② 폴더 안의 파일 목록 가져오기
+  const { data, error } = await supabase
+    .storage
+    .from(bucket)
+    .list(folderPath, {
+      limit: 100, // 최대 100개까지
+      offset: 0
+    })
+
+  if (error) {
+    console.error('파일 목록 불러오기 실패:', error)
+    return []
+  }
+
+  // ③ 파일 이름들을 기반으로 공개 URL 생성
+  const urls = data
+    .filter(file => file.name.endsWith('.jpg') || file.name.endsWith('.png') || file.name.endsWith('.jpeg'))
+    .map(file => {
+      const { data: publicUrlData } = supabase
+        .storage
+        .from(bucket)
+        .getPublicUrl(`${folderPath}${file.name}`)
+      return publicUrlData.publicUrl
+    })
+
+  console.log('이미지 URL 배열:', urls)
+  return urls
+}
+
 
 async function loadGameData() {
-    try {
-        // Supabase에서 게임 데이터 조회
-        const { data: game, error: dbError } = await supabase
-            .from('Games')
-            .select('*')
-            .eq('slug', gameId)
-            .single()
+  try {
+    // Supabase에서 게임 데이터 조회
+    const { data: game, error: dbError } = await supabase
+      .from('Games')
+      .select('*')
+      .eq('slug', gameId)
+      .single()
 
-        if (dbError || !game) {
-            throw new Error('게임을 찾을 수 없습니다')
-        }
-
-        // 페이지 렌더링
-        renderGame(game)
-        loading.style.display = 'none'
-        gameContent.style.display = 'block'
-
-    } catch (err) {
-        console.error('Error loading game:', err)
-        loading.style.display = 'none'
-        error.style.display = 'block'
+    if (dbError || !game) {
+      throw new Error('게임을 찾을 수 없습니다')
     }
+
+    // 페이지 렌더링
+    const urls = await getImageUrls(game.storage_folder_name)
+    renderGame(game, urls)
+    loading.style.display = 'none'
+    gameContent.style.display = 'block'
+
+  } catch (err) {
+    console.error('Error loading game:', err)
+    loading.style.display = 'none'
+    error.style.display = 'block'
+  }
 }
 
-function renderGame(game) {
-    const formatKRW = n => new Intl.NumberFormat('ko-KR').format(n)
+function imgViewer(img_urls) {
+  const mainImage = document.getElementById('mainImage');
+  const thumbnailList = document.getElementById('thumbnailList');
 
-    // 가격 계산
-    let priceHTML = ''
-    if (game.discount && game.discount > 0) {
-        const newPrice = Math.round(game.price * (100 - game.discount) / 100)
-        priceHTML = `
+  // 첫 번째 이미지를 기본 큰 이미지로 설정
+  mainImage.src = img_urls[0] || 'placeholder.jpg';
+
+  // 썸네일 생성
+  img_urls.forEach((url, index) => {
+    const thumb = document.createElement('img');
+    thumb.src = url;
+    thumb.alt = `썸네일 ${index + 1}`;
+
+    // 클릭 시 큰 이미지 변경
+    thumb.addEventListener('click', () => {
+      mainImage.src = url;
+    });
+
+    thumbnailList.appendChild(thumb);
+  });
+}
+
+function renderGame(game, img_urls) {
+  const formatKRW = n => new Intl.NumberFormat('ko-KR').format(n)
+
+  // 가격 계산
+  let priceHTML = ''
+  if (game.discount && game.discount > 0) {
+    const newPrice = Math.round(game.price * (100 - game.discount) / 100)
+    priceHTML = `
           <div class="price">
             <span class="off">-${game.discount}%</span>
             <span class="old">₩${formatKRW(game.price)}</span>
             <span>₩${formatKRW(newPrice)}</span>
           </div>
         `
-    } else {
-        priceHTML = `
+  } else {
+    priceHTML = `
           <div class="price">₩${formatKRW(game.price)}</div>
         `
-    }
+  }
 
-    // 태그 배지
-    const tags = game.tags || []
-    const badgesHTML = tags.map(tag => `<span class="badge">${tag}</span>`).join('')
+  // 태그 배지
+  const tags = game.tags || []
+  const badgesHTML = tags.map(tag => `<span class="badge">${tag}</span>`).join('')
 
-    // 페이지 제목 설정
-    document.title = `${game.title} - 갓겜판독기`
+  // 페이지 제목 설정
+  document.title = `${game.title} - 갓겜판독기`
 
-    gameContent.innerHTML = `
+  gameContent.innerHTML = `
         <!-- 게임 헤더 -->
         <section class="game-header">
           <div class="game-header-content">
-            <img class="game-cover-large" src="${game.cover || 'placeholder.jpg'}" alt="${game.title} 커버">
+           <div class="main-image-wrapper">
+            <img id="mainImage" class="game-cover-large" src="placeholder.jpg" alt="게임 커버">
+           </div>
+            <!-- 썸네일 목록 -->
+            <div class="thumbnail-list" id="thumbnailList">
+              <!-- JS에서 자동 생성 -->
+            </div>
+          </div>
             <div class="game-info">
               <h1>${game.title}</h1>
               <div class="badges">${badgesHTML}</div>
@@ -139,4 +203,5 @@ function renderGame(game) {
           </div>
         </section>
       `
+      imgViewer(img_urls)
 }

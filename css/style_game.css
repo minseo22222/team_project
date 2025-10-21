@@ -93,18 +93,21 @@ main {
 }
 
 .game-header-content {
-    display: grid;
-    grid-template-columns: 400px 1fr;
-    gap: 32px;
-    align-items: start;
+  display: flex;             /* 가로 정렬 */
+  align-items: flex-start;   /* 상단 기준 정렬 */
+  gap: 16px;                 /* 큰 이미지와 썸네일 간 간격 */
+}
+
+.main-image-wrapper {
+  flex: 1;                   /* 왼쪽 큰 이미지 영역 크게 */
 }
 
 .game-cover-large {
-    width: 100%;
-    aspect-ratio: 16/9;
-    object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, .15);
+  width: 100%;               /* wrapper 크기에 맞게 */
+  max-width: 950px;          /* 최대 크기 */
+  height: auto;
+  border-radius: 8px;
+  border: 2px solid #ccc;
 }
 
 .game-info h1 {
@@ -360,4 +363,27 @@ main {
 
 .menu li:hover {
     background: #f2f4f7;
+}
+
+.thumbnail-list {
+  display: flex;
+  flex-direction: column;  /* 세로 배열 */
+  gap: 8px;                /* 썸네일 간 간격 */
+  max-height: 450px;       /* 6개 정도 썸네일 높이에 맞춤 */
+  overflow-y: auto;        /* 넘치면 세로 스크롤 */
+  padding-right: 4px;      /* 스크롤 겹침 방지 */
+}
+
+.thumbnail-list img {
+  width: 100px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.thumbnail-list img:hover {
+  border-color: #007bff;
 }

@@ -106,6 +106,7 @@ main {
   width: 100%;               /* wrapper 크기에 맞게 */
   max-width: 950px;          /* 최대 크기 */
   height: auto;
+  max-height: 720px;
   border-radius: 8px;
   border: 2px solid #ccc;
 }

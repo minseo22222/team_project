@@ -197,15 +197,16 @@ header {
 }
 
 .gallery {
-    display: grid;
-    grid-template-columns: var(--side-w) var(--center-w) var(--side-w);
-    gap: var(--gap);
-    align-items: center;
+    position: relative; /* 좌우 이미지를 absolute로 위치시키기 위해 */
+    width: 100%;
+    height: var(--center-h);
+    display: flex;
     justify-content: center;
-    padding-inline: var(--edge-pad);
+    align-items: center;
+    gap: var(--gap);
 }
 
-.gallery>figure {
+.gallery > figure {
     margin: 0;
     height: var(--center-h);
     border-radius: 12px;
@@ -214,22 +215,49 @@ header {
     background: #ddd;
 }
 
-.center img,
-.side img {
+.center {
     width: var(--center-w);
     height: var(--center-h);
+    z-index: 2; /* 중앙 이미지가 위로 오도록 */
+    position: relative; /* 필요 시 z-index 적용용 */
+}
+
+.center img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    display: block;
+}
+
+.side {
+    width: var(--side-w); /* 중앙의 절반 */
+    height: var(--center-h);
+    overflow: hidden;
+    position: absolute; /* center 기준으로 위치 조정 */
+    top: 0;
+}
+
+.side.left {
+    left: 0; /* 좌측 */
+    z-index: 1;
 }
 
 .side.left img {
-    object-position: left center
+    width: 200%; /* 원본 중앙 크기 */
+    height: 100%;
+    object-fit: cover;
+    transform: translateX(-50%);
+}
+
+.side.right {
+    right: 0; /* 우측 */
+    z-index: 1;
 }
 
 .side.right img {
-    object-position: right center
+    width: 200%; /* 원본 중앙 크기 */
+    height: 100%;
+    object-fit: cover;
 }
-
 .nav-btn {
     position: absolute;
     top: 50%;
@@ -446,4 +474,23 @@ header {
   height: 70px; 
   padding: 10px 20px;
   z-index: 1000; /* 위에 표시되게 */
+}
+/* ✨ 캡션 박스 */
+.caption-box {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  background: rgba(0, 0, 0, 0.6); /* 반투명 검정 */
+  padding: 8px 14px;
+  border-radius: 8px;
+  backdrop-filter: blur(2px); /* 배경 살짝 블러 */
+  z-index: 2;
+}
+
+.caption {
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }

@@ -1,13 +1,5 @@
 import supabase from './supabase.js';
 
-// 검색 함수
-function onSearch() {
-  const q = document.getElementById('q').value.trim();
-  if (!q) return;
-  location.href = `/search?q=${encodeURIComponent(q)}`;
-}
-window.onSearch = onSearch
-
 const loading = document.getElementById('loading')
 const error = document.getElementById('error')
 const gameContent = document.getElementById('gameContent')

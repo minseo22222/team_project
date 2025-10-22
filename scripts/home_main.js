@@ -1,37 +1,29 @@
 
 import supabase from './supabase.js';
 
-/* 搜索提交 */
-function onSearch() {
-    const q = document.getElementById('q').value.trim();
-    if (!q) return;
-    location.href = `/search?q=${encodeURIComponent(q)}`;
-}
-window.onSearch = onSearch
-
 /* 顶部画廊：上一张 / 下一张 */
 /*GALLAY 부분*/
 async function fetchTop6Games() {
-  const { data, error } = await supabase
-    .from('Games')
-    .select('cover_image_url,title,slug')
-    .order('game_id', { ascending: false }) // id 기준으로 최신 6개 가져오기, 필요 없으면 제거
-    .limit(6);
+    const { data, error } = await supabase
+        .from('Games')
+        .select('cover_image_url,title,slug')
+        .order('game_id', { ascending: false }) // id 기준으로 최신 6개 가져오기, 필요 없으면 제거
+        .limit(6);
 
-  if (error) {
-    console.error('Error fetching Games:', error);
-    return [];
-  }
+    if (error) {
+        console.error('Error fetching Games:', error);
+        return [];
+    }
 
-  return data;
+    return data;
 }
 
-const top6data= await fetchTop6Games();
+const top6data = await fetchTop6Games();
 console.log(top6data);
 
 const images = top6data.map(item => item.cover_image_url);
-const titles= top6data.map(item => item.title)
-const slugs=top6data.map(item => item.slug)
+const titles = top6data.map(item => item.title)
+const slugs = top6data.map(item => item.slug)
 
 
 console.log(images);
@@ -39,7 +31,7 @@ let current = 0;
 const imgLeft = document.getElementById('imgLeft');
 const imgCenter = document.getElementById('imgCenter');
 const imgRight = document.getElementById('imgRight');
-const centerCaption=document.getElementById('caption_center')
+const centerCaption = document.getElementById('caption_center')
 
 function render() {
     const n = images.length;
@@ -47,12 +39,12 @@ function render() {
     imgLeft.src = images[(current - 1 + n) % n];
     imgRight.src = images[(current + 1) % n];
 
-    centerCaption.textContent=titles[current];
-    
+    centerCaption.textContent = titles[current];
+
 }
 document.getElementById('prevBtn').addEventListener('click', () => { current = (current - 1 + images.length) % images.length; render(); });
 document.getElementById('nextBtn').addEventListener('click', () => { current = (current + 1) % images.length; render(); });
-document.getElementById('center_link').addEventListener('click', () => { window.location.href = `/game.html?id=${slugs[current]}`;});
+document.getElementById('center_link').addEventListener('click', () => { window.location.href = `/game.html?id=${slugs[current]}`; });
 
 
 render();
@@ -74,6 +66,27 @@ async function loadPopularGames() {
     }
 }
 const formatKRW = n => new Intl.NumberFormat('ko-KR').format(n);
+
+function setRating(score) {
+    if (score != null) {
+        const stars = document.querySelectorAll('.rate .star');
+        stars.forEach((star, index) => {
+            star.classList.remove('full', 'half');
+
+            if (score >= index + 1) {
+                star.classList.add('full'); // 완전 채움
+            } else if (score >= index + 0.5) {
+                star.classList.add('half'); // 반만 채움
+            } else {
+                // 그대로 빈 별
+            }
+        });
+    }
+    else{
+        console.log("평점이null값!");
+    }
+
+}
 
 function renderPopular(games) {
     const grid = document.getElementById('gameGrid');
@@ -98,6 +111,8 @@ function renderPopular(games) {
 
         const priceBox = node.querySelector('.price');
         priceBox.innerHTML = `<span>${g.developer || '개발사 정보 없음'}</span>`;
+
+        setRating(g.avg_rating)
 
         grid.appendChild(node);
     }
@@ -164,3 +179,18 @@ function renderUpcoming(games) {
     }
 }
 loadUpcomingGames();
+
+
+function handleChipClick(e) {
+  const value = e.target.textContent; // 클릭한 버튼의 텍스트
+  console.log('선택된 칩:', value);
+  location.href =  `/search.html?q=${value}`;
+}
+
+const chipsContainer = document.querySelector('.chips');
+
+chipsContainer.addEventListener('click', (e) => {
+  if (e.target.classList.contains('chip')) {
+    handleChipClick(e);
+  }
+});

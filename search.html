@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>검색</title>
+    <link rel="stylesheet" href="./css/style_search.css">
+</head>
+
+<body>
+    <!--header-->
+    <div id="header"></div>
+
+    <script type="module">
+        fetch('components/header.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('header').innerHTML = html;
+                const redirectURL = document.getElementById('redirect');
+                redirectURL.textContent = window.location.href; //로그인 후 복귀할 주소
+                // 외부 JS 추가 실행
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = 'scripts/header_user.js';
+                document.body.appendChild(script);
+            });
+    </script>
+    <!--header-->
+    <!--main-->
+
+    <main>
+
+        <div class="caption-box">
+            <h3 class="caption" id="searchResultTitle"></h3>
+        </div>
+        <section class="section">
+            <div class="game-grid" id="gameGrid"></div>
+            <template id="gameCardTpl">
+                <article class="game-card">
+                    <a class="link" href="#">
+                        <img class="game-cover" src="" alt="">
+                        <div class="game-meta">
+                            <div class="game-title"></div>
+                            <div class="badges"></div>
+                            <div class="price"></div>
+                            <div class="rate">
+                                <div class="stars">
+                                    <span class="star">★</span>
+                                    <span class="star">★</span>
+                                    <span class="star">★</span>
+                                    <span class="star">★</span>
+                                    <span class="star">★</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </article>
+            </template>
+        </section>
+
+        <script type="module">
+            import supabase from './scripts/supabase.js';
+            // 현재 페이지의 URL에서 쿼리스트링 부분을 가져옴
+            const params = new URLSearchParams(window.location.search);
+            // q 파라미터 값을 가져오기
+            const q = params.get('q');
+            console.log('검색어:', q);
+            // 예: 페이지 내 특정 요소에 표시하기
+            document.getElementById('searchResultTitle').textContent = `${q}(와)과 일치하는 게임 목록`;
+
+            async function loadGames() {
+
+                const { data } = await supabase
+                    .from('Games')
+                    .select('*')
+                    .or(
+                        `title.ilike.%${q}%,developer.ilike.%${q}%,genre.ilike.%${q}%`
+                    );
+
+                if (data && data.length > 0) {
+                    renderGames(data)
+                }
+            }
+            function setRating(score) {
+                if (score != null) {
+                    const stars = document.querySelectorAll('.rate .star');
+                    stars.forEach((star, index) => {
+                        star.classList.remove('full', 'half');
+
+                        if (score >= index + 1) {
+                            star.classList.add('full'); // 완전 채움
+                        } else if (score >= index + 0.5) {
+                            star.classList.add('half'); // 반만 채움
+                        } else {
+                            // 그대로 빈 별
+                        }
+                    });
+                }
+                else {
+                    console.log("평점이null값!");
+                }
+
+            }
+
+            function renderGames(games) {
+                const grid = document.getElementById('gameGrid');
+                const tpl = document.getElementById('gameCardTpl');
+                grid.innerHTML = '';
+                for (const g of games) {
+                    const node = tpl.content.firstElementChild.cloneNode(true);
+
+                    node.querySelector('.link').href = `/game.html?id=${g.slug}`;
+                    const img = node.querySelector('.game-cover');
+                    img.src = g.cover_image_url || '1.jpg';
+                    img.alt = `${g.title} 커버`;
+
+                    node.querySelector('.game-title').textContent = g.title;
+
+                    const badges = node.querySelector('.badges');
+                    badges.innerHTML = '';
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    badge.textContent = g.genre || '장르';
+                    badges.appendChild(badge);
+
+                    const priceBox = node.querySelector('.price');
+                    priceBox.innerHTML = `<span>${g.developer || '개발사 정보 없음'}</span>`;
+
+                    setRating(g.avg_rating)
+
+                    grid.appendChild(node);
+                }
+            }
+            loadGames();
+        </script>
+
+
+    </main>
+</body>
+
+</html>

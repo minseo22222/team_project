@@ -1,0 +1,152 @@
+/* ===== Reviews List (열람) ===== */
+:root{ --star:#facc15; } /* 별 색 */
+
+.reviews-view{
+  background:#fff;
+  border-radius:16px;
+  padding:24px;
+  margin:16px auto 24px;
+  max-width:1000px;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+}
+
+.reviews-toolbar{
+  display:flex; justify-content:flex-end; gap:8px; margin-bottom:10px;
+}
+.sort-btn{
+  height:34px; padding:0 12px; border-radius:10px;
+  border:1px solid var(--line); background:#94a8bd; color:var(--ink-2);
+  font-weight:700; cursor:pointer;
+}
+.sort-btn.active{ color:var(--ink); border-color:#95a5b9; }
+
+.review-list{ display:grid; gap:10px; }
+
+.review-card{
+  background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+  display:grid; grid-template-columns:56px 1fr auto; gap:12px; align-items:start;
+}
+.avatar{
+  width:44px; height:44px;
+  border-radius:999px;
+  overflow:hidden;
+  background:#e2e8f0;      /* 이미지 없을 때 배경 */
+  display:grid; place-items:center;
+}
+.avatar > img{
+  width:100%; height:100%;
+  object-fit:cover;         /* 정사각/직사각 모두 얼굴만 꽉 차게 */
+  display:block;
+}
+
+
+.review-meta{ display:grid; gap:6px; }
+.review-user{ font-weight:800; }
+.review-text{ color:var(--ink); }
+.review-sub{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; color:var(--ink-2); font-size:14px; }
+
+.inline-btn{ display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+
+.review-side{ display:grid; gap:8px; justify-items:end; min-width:120px; }
+.stars{ display:flex; gap:4px; font-size:20px; line-height:1; }
+.stars .on{ color:var(--star); }
+.stars .off{ color:#111; }
+
+.loadmore-btn{
+  display:block; margin:8px auto 0; height:40px; padding:0 16px;
+  border-radius:10px; border:1px solid var(--line); background:#fff; font-weight:700; cursor:pointer;
+}
+.loadmore-btn:hover{ background:#f8fafc; }
+
+/* 반응형 */
+@media (max-width:720px){
+  .review-card{ grid-template-columns:40px 1fr; }
+  .review-side{ grid-column:1 / -1; justify-items:start; }
+}
+
+    /* ===== Reviews (평가) ===== */
+.reviews-section{
+  background:#fff;
+  border-radius:16px;
+  padding:32px;
+  margin-bottom:24px;
+  box-shadow:0 24px 24px rgba(0,0,0,.06);
+  
+}
+/* 섹션 가로 가운데 */
+.reviews-section{
+  max-width: 1000px;     /* 원하는 폭 */
+  margin: 24px auto;     /* 가운데 정렬 */
+}
+
+
+/* 작성 박스 */
+.review-composer{
+  display:grid; gap:12px;
+  background:#f1efef;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px;
+}
+.review-composer .row{ display:flex; align-items:center; gap:10px; }
+
+/* 별점 */
+.rating{
+  display:inline-flex;
+  flex-direction:row-reverse; /* 왼→오 채워지도록 */
+  gap:6px;
+  
+}
+.rating input{ display:none; }
+.rating label{
+  font-size:28px; line-height:1;
+  color:#9fb8d6;              /* 빈 별: var(--line) 톤 */
+  cursor:pointer; user-select:none;
+}
+.rating label::before{ content:"★"; }
+.rating input:checked ~ label,
+.rating label:hover,
+.rating label:hover ~ label{ color:#f59e0b; } /* 채워진 별(골드) */
+
+/* 텍스트박스 */
+.review-composer textarea{
+  width:100%; min-height:160px;
+  padding:12px 14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  outline:none; resize:vertical;
+  font:inherit; color:var(--ink); background:#e2ebf1;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;   /* 사용자가 가로 리사이즈 못 하게 안전장치 */
+}
+.review-composer textarea:focus{
+  border-color:#93c5fd;
+  box-shadow:0 0 0 3px rgba(59,130,246,.15);
+}
+
+/* 버튼 행: 오른쪽 정렬 */
+.review-actions{ display:flex; gap:10px; justify-content:flex-end; }
+
+
+
+/* 버튼 */
+.btn{
+  height:40px; padding:0 14px; border-radius:10px;
+  border:1px solid var(--line); background:#b4f0f8; color:var(--ink);
+  font-weight:700; cursor:pointer;
+  font-size: 110%;
+}
+.btn:hover{ background:#7ff598; }
+.btn-primary{
+  background:var(--brand); border-color:transparent; color:#fff;
+}
+.btn-primary:hover{ filter:brightness(.95); }
+.review-actions .btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 110px;   /* = width, 원하는 값으로 */
+  block-size: 40px;     /* = height (이미 40px이면 생략 가능) */
+  padding: 0 12px;      /* 고정폭일 때는 패딩 과하지 않게 */
+}

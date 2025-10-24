@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>게시글 - 갓겜판독기</title>
+  <link rel="stylesheet" href="./css/style_game.css">
+  <!-- Quill.js CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.css" rel="stylesheet">
+  <style>
+    .post-container {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .post-header {
+        background: white;
+        border-radius: 16px 16px 0 0;
+        padding: 32px;
+        margin-bottom: 0;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+        border: 2px solid #e5e7eb;
+        border-bottom: none;
+    }
+
+    .breadcrumb {
+      color: var(--ink-2);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .breadcrumb a {
+      color: var(--brand);
+      text-decoration: none;
+    }
+
+    .post-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 16px;
+      color: var(--ink);
+    }
+
+    .post-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+      color: var(--ink-2);
+      font-size: 14px;
+    }
+
+    .post-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .author-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .author-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e2f2ff;
+      object-fit: cover;
+    }
+
+    .post-content-box {
+        background: white;
+        border-radius: 0 0 16px 16px;
+        padding: 32px;
+        margin-bottom: 24px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+        min-height: 200px;
+        line-height: 1.8;
+        color: var(--ink);
+        white-space: normal;
+        word-wrap: break-word;
+        border: 2px solid #e5e7eb;
+        border-top: none;
+    }
+
+    /* 수정 폼 */
+    .edit-form {
+      background: white;
+      border-radius: 0 0 16px 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+      border: 2px solid #e5e7eb;
+      border-top: none;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+    }
+
+    #editEditor {
+      min-height: 300px;
+      background: white;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn-primary {
+      background: var(--brand);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: var(--ink);
+    }
+
+   .post-actions {
+      background: white;
+      border-radius: 16px;
+      padding: 24px 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .like-dislike-section {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .like-btn, .dislike-btn {
+      padding: 12px 24px;
+      border: 2px solid #e5e7eb;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 100px;
+      justify-content: center;
+    }
+
+    .like-btn:hover {
+      border-color: #0ea5e9;
+      color: #0ea5e9;
+      transform: translateY(-2px);
+    }
+
+    .like-btn.active {
+      background: #0ea5e9;
+      color: white;
+      border-color: #0ea5e9;
+    }
+
+    .dislike-btn:hover {
+      border-color: #dc2626;
+      color: #dc2626;
+      transform: translateY(-2px);
+    }
+
+    .dislike-btn.active {
+      background: #dc2626;
+      color: white;
+      border-color: #dc2626;
+    }
+
+    .bottom-actions {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .edit-delete-section {
+      display: flex;
+      gap: 8px;
+    }
+
+    .edit-btn, .delete-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .edit-btn {
+      background: #e5e7eb;
+      color: var(--ink);
+    }
+
+    .delete-btn {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .back-btn {
+      padding: 12px 24px;
+      background: #e5e7eb;
+      color: var(--ink);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .back-btn:hover {
+      background: #d1d5db;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--ink-2);
+    }
+
+    .error {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+    }
+
+    .error h2 {
+      color: #dc2626;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="post-container">
+    <!-- 로딩 -->
+    <div class="loading" id="loading">게시글을 불러오는 중...</div>
+
+    <!-- 에러 -->
+    <div class="error" id="error" style="display: none;">
+      <h2>⚠️ 게시글을 찾을 수 없습니다</h2>
+      <p>삭제되었거나 존재하지 않는 게시글입니다.</p>
+      <button class="back-btn" onclick="history.back()">← 돌아가기</button>
+    </div>
+
+    <!-- 게시글 내용 -->
+    <div id="postContent" style="display: none;">
+      <!-- 상단 네비게이션 버튼 -->
+      <div class="game-nav-buttons">
+        <button class="nav-btn" id="gameNavBtn">
+          ⭐ 평가
+        </button>
+        <button class="nav-btn active">
+          💬 커뮤니티
+        </button>
+      </div>
+
+      <div class="post-header">
+        <div class="breadcrumb">
+          <a href="/home.html">홈</a> > 
+          <a href="#" id="gameLink">게임</a> > 
+          <a href="#" id="boardLink">게시판</a> > 
+          게시글
+        </div>
+        <h1 class="post-title" id="postTitle"></h1>
+        <div class="post-meta">
+          <div class="post-meta-left">
+            <div class="author-info">
+              <img class="author-avatar" id="authorAvatar" src="" alt="프로필">
+              <span id="authorName"></span>
+            </div>
+            <span id="postDate"></span>
+            <span>👁️ <span id="postViews"></span></span>
+          </div>
+          <div class="edit-delete-section" id="ownerActions" style="display: none;">
+            <button class="edit-btn" onclick="editPost()">수정</button>
+            <button class="delete-btn" onclick="deletePost()">삭제</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 게시글 본문 -->
+      <div class="post-content-box" id="postContentText"></div>
+
+      <!-- 수정 폼 (숨김 상태) -->
+      <div class="edit-form" id="editForm" style="display: none;">
+        <div class="form-group">
+          <label>제목</label>
+          <input type="text" id="editTitle" maxlength="200">
+        </div>
+        <div class="form-group">
+          <label>내용</label>
+          <div id="editEditor"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="cancelEdit()">취소</button>
+          <button class="btn btn-primary" onclick="saveEdit()">저장</button>
+        </div>
+      </div>
+
+      <div class="post-actions">
+        <div class="like-dislike-section">
+          <button class="like-btn" id="likeBtn" onclick="toggleLike()">
+            👍 좋아요 <span id="likeCount">0</span>
+          </button>
+          <button class="dislike-btn" id="dislikeBtn" onclick="toggleDislike()">
+            👎 싫어요 <span id="dislikeCount">0</span>
+          </button>
+        </div>
+        <div class="bottom-actions">
+          <button class="back-btn" onclick="goBackToBoard()">← 목록으로</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Quill.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+
+  <script type="module">
+    import supabase from './scripts/supabase.js';
+
+    let editQuill = null;
+
+    // 헤더 로드
+    fetch('components/header.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('header').innerHTML = html;
+        const redirectURL = document.getElementById('redirect');
+        redirectURL.textContent = window.location.href;
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'scripts/header_user.js';
+        document.body.appendChild(script);
+      });
+
+    // URL 파라미터
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get('id');
+
+    let currentUser = null;
+    let currentPost = null;
+
+    if (!postId) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+    } else {
+      loadPost();
+    }
+
+    // 로그인 상태 확인
+    async function checkAuthStatus() {
+      const { data: { user } } = await supabase.auth.getUser();
+      currentUser = user;
+      
+      // 본인 게시글이면 수정/삭제 버튼 표시
+      if (user && currentPost && user.id === currentPost.user_id) {
+        document.getElementById('ownerActions').style.display = 'flex';
+      }
+    }
+
+    // 게시글 로드
+    async function loadPost() {
+      try {
+        // 조회수 증가
+        await supabase.rpc('increment_post_views', { post_id: postId });
+
+        // 게시글 조회
+        const { data, error } = await supabase
+          .from('board_posts')
+          .select(`
+            *,
+            Users!board_posts_user_id_fkey (
+              nickname,
+              profile_image_url
+            )
+          `)
+          .eq('post_id', postId)
+          .single();
+
+        if (error || !data) throw new Error('게시글을 찾을 수 없습니다');
+
+        currentPost = data;
+        const author = data.Users || {};
+
+        // 페이지 타이틀
+        document.title = `${data.title} - 갓겜판독기`;
+
+        // 네비게이션 링크 설정
+        document.getElementById('gameLink').textContent = data.game_title || '게임';
+        document.getElementById('gameLink').href = `/game.html?id=${data.game_slug}`;
+        document.getElementById('boardLink').href = `/board.html?game_id=${data.game_id}&slug=${data.game_slug}&title=${encodeURIComponent(data.game_title || '')}`;
+        document.getElementById('gameNavBtn').onclick = () => {
+          window.location.href = `/game.html?id=${data.game_slug}`;
+        };
+
+        // 게시글 내용
+        document.getElementById('postTitle').textContent = data.title;
+        document.getElementById('authorAvatar').src = author.profile_image_url || '';
+        document.getElementById('authorName').textContent = author.nickname || '익명';
+        document.getElementById('postDate').textContent = new Date(data.created_at).toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        document.getElementById('postViews').textContent = data.views || 0;
+        document.getElementById('postContentText').innerHTML = data.content;
+        document.getElementById('likeCount').textContent = data.like_count || 0;
+        document.getElementById('dislikeCount').textContent = data.dislike_count || 0;
+
+        // 화면 표시
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('postContent').style.display = 'block';
+
+        // 로그인 확인
+        await checkAuthStatus();
+
+      } catch (err) {
+        console.error('Error loading post:', err);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+      }
+    }
+
+    // 게시판으로 돌아가기
+    window.goBackToBoard = function() {
+      if (currentPost) {
+        window.location.href = `/board.html?game_id=${currentPost.game_id}&slug=${currentPost.game_slug}&title=${encodeURIComponent(currentPost.game_title || '')}`;
+      } else {
+        history.back();
+      }
+    };
+
+    // 좋아요
+    window.toggleLike = async function() {
+      if (!currentUser) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      try {
+        const likeBtn = document.getElementById('likeBtn');
+        const isLiked = likeBtn.classList.contains('active');
+
+        if (isLiked) {
+          const newCount = Math.max(0, (currentPost.like_count || 0) - 1);
+          const { error } = await supabase
+            .from('board_posts')
+            .update({ like_count: newCount })
+            .eq('post_id', postId);
+
+          if (error) throw error;
+
+          currentPost.like_count = newCount;
+          document.getElementById('likeCount').textContent = newCount;
+          likeBtn.classList.remove('active');
+        } else {
+          const newCount = (currentPost.like_count || 0) + 1;
+          const { error } = await supabase
+            .from('board_posts')
+            .update({ like_count: newCount })
+            .eq('post_id', postId);
+
+          if (error) throw error;
+
+          currentPost.like_count = newCount;
+          document.getElementById('likeCount').textContent = newCount;
+          likeBtn.classList.add('active');
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        alert('좋아요 처리 중 오류가 발생했습니다.');
+      }
+    };
+
+    // 싫어요
+    window.toggleDislike = async function() {
+      if (!currentUser) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      try {
+        const dislikeBtn = document.getElementById('dislikeBtn');
+        const isDisliked = dislikeBtn.classList.contains('active');
+
+        if (isDisliked) {
+          const newCount = Math.max(0, (currentPost.dislike_count || 0) - 1);
+          const { error } = await supabase
+            .from('board_posts')
+            .update({ dislike_count: newCount })
+            .eq('post_id', postId);
+
+          if (error) throw error;
+
+          currentPost.dislike_count = newCount;
+          document.getElementById('dislikeCount').textContent = newCount;
+          dislikeBtn.classList.remove('active');
+        } else {
+          const newCount = (currentPost.dislike_count || 0) + 1;
+          const { error } = await supabase
+            .from('board_posts')
+            .update({ dislike_count: newCount })
+            .eq('post_id', postId);
+
+          if (error) throw error;
+
+          currentPost.dislike_count = newCount;
+          document.getElementById('dislikeCount').textContent = newCount;
+          dislikeBtn.classList.add('active');
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        alert('싫어요 처리 중 오류가 발생했습니다.');
+      }
+    };
+
+    // 수정 모드 진입
+    window.editPost = function() {
+      // 본문 숨기고 수정 폼 표시
+      document.getElementById('postContentText').style.display = 'none';
+      document.getElementById('editForm').style.display = 'block';
+
+      // 제목 입력
+      document.getElementById('editTitle').value = currentPost.title;
+
+      // Quill 에디터 초기화
+      if (!editQuill) {
+        editQuill = new Quill('#editEditor', {
+          theme: 'snow',
+          modules: {
+            toolbar: [
+              [{ 'header': [1, 2, 3, false] }],
+              [{ 'size': ['small', false, 'large', 'huge'] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ 'color': [] }, { 'background': [] }],
+              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+              ['link'],
+              ['clean']
+            ]
+          }
+        });
+      }
+      
+      // 기존 내용 로드
+      editQuill.root.innerHTML = currentPost.content;
+    };
+
+    // 수정 취소
+    window.cancelEdit = function() {
+      document.getElementById('postContentText').style.display = 'block';
+      document.getElementById('editForm').style.display = 'none';
+    };
+
+    // 수정 저장
+    window.saveEdit = async function() {
+      const newTitle = document.getElementById('editTitle').value.trim();
+      const newContent = editQuill.root.innerHTML.trim();
+      const textContent = editQuill.getText().trim();
+
+      if (!newTitle || !textContent) {
+        alert('제목과 내용을 모두 입력해주세요.');
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from('board_posts')
+          .update({
+            title: newTitle,
+            content: newContent,
+            updated_at: new Date().toISOString()
+          })
+          .eq('post_id', postId);
+
+        if (error) throw error;
+
+        alert('게시글이 수정되었습니다.');
+        
+        // 게시글 다시 로드
+        currentPost.title = newTitle;
+        currentPost.content = newContent;
+        document.getElementById('postTitle').textContent = newTitle;
+        document.getElementById('postContentText').innerHTML = newContent;
+        
+        cancelEdit();
+      } catch (err) {
+        console.error('Error:', err);
+        alert('수정 중 오류가 발생했습니다.');
+      }
+    };
+
+    // 삭제
+    window.deletePost = async function() {
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+
+      try {
+        const { error } = await supabase
+          .from('board_posts')
+          .delete()
+          .eq('post_id', postId);
+
+        if (error) throw error;
+
+        alert('게시글이 삭제되었습니다.');
+        goBackToBoard();
+      } catch (err) {
+        console.error('Error:', err);
+        alert('삭제 중 오류가 발생했습니다.');
+      }
+    };
+  </script>
+</body>
+</html>

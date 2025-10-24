@@ -1,0 +1,9 @@
+수정한 파일
+-game.js
+-style_game.css
+
+추가한 파일
+-board.html
+-board_post.html
+
+필요한 기능

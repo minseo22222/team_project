@@ -347,3 +347,17 @@
 .replies[hidden] {
   display: none !important;
 }
+.side-stars span{
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.side-stars .off{  /* 你的现有命名 */
+  color: #9fb8d6 !important;
+}
+.side-stars .on{
+  color: var(--star) !important;
+}

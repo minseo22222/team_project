@@ -1,12 +1,135 @@
-/* ===== Reviews List (열람) ===== */
-:root{ --star:#facc15; } /* 별 색 */
+/* =====================*/
+/* Vars                 */
+/* =====================*/
+:root{
+  --star:  #facc15;   /* 별 색 */
+  --brand: #0ea5e9;   /* 포인트 컬러 */
+  --line:  #e5e7eb;   /* 경계선 */
+  --ink:   #0f172a;   /* 본문 글자 */
+  --ink-2: #475569;   /* 보조 글자 */
+  --rec-size: 42px;   /* 추천 아이콘 크기 */
+}
 
+/* =====================*/
+/* Reviews (작성 영역)  */
+/* =====================*/
+.reviews-section{
+  background:#fff;
+  border-radius:16px;
+  padding:32px;
+  margin:24px auto;
+  max-width:1150px;
+  box-shadow:0 24px 24px rgba(0,0,0,.06);
+}
+
+/* 작성 폼: 좌=별점, 우=추천, 아래=텍스트/버튼 */
+.review-composer{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "stars recommend"
+    "text  text"
+    "actions actions";
+  gap:12px;
+  background:#f1efef;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px;
+}
+.review-composer .row{ display:flex; align-items:center; gap:10px; }
+
+.stars-row{ grid-area: stars; }
+.recommend-row{ grid-area: recommend; justify-self:end; }
+
+/* 별점 */
+.rating{
+  display:inline-flex;
+  flex-direction:row-reverse;
+  gap:6px;
+}
+.rating input{ display:none; }
+.rating label{
+  font-size:28px; line-height:1;
+  color:#9fb8d6;
+  cursor:pointer; user-select:none;
+}
+.rating label::before{ content:"★"; }
+.rating input:checked ~ label,
+.rating label:hover,
+.rating label:hover ~ label{ color:#f59e0b; }
+
+/* 추천/비추천 */
+.recommend{ display:inline-flex; gap:8px; align-items:center; }
+.recommend input[type="radio"]{ position:absolute; opacity:0; width:0; height:0; }
+.recommend .chip{
+  padding:8px 14px; border:1px solid #e5e7eb; border-radius:9999px;
+  background:#fff; color:#374151; font-size:14px; line-height:1;
+  cursor:pointer; user-select:none; transition:all .15s ease;
+}
+.recommend .chip:hover{ border-color:#cbd5e1; background:#f8fafc; }
+.recommend input[type="radio"]:checked + label{
+  border-color:var(--brand);
+  background:rgba(14,165,233,.10);
+  color:var(--brand);
+  box-shadow:0 0 0 2px rgba(14,165,233,.10) inset;
+}
+.recommend .chip.yes::before{ content:"👍 "; }
+.recommend .chip.no::before { content:"👎 "; }
+
+/* 텍스트박스 */
+.review-composer textarea{
+  grid-area:text;
+  width:100%; max-width:100%; min-height:160px;
+  padding:12px 14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  outline:none; resize:vertical;
+  font:inherit; color:var(--ink); background:#e2ebf1;
+  box-sizing:border-box;
+}
+.review-composer textarea:focus{
+  border-color:#93c5fd;
+  box-shadow:0 0 0 3px rgba(59,130,246,.15);
+}
+
+/* 버튼 행 */
+.review-actions{
+  grid-area:actions;
+  display:flex; gap:10px; justify-content:flex-end;
+}
+.btn{
+  height:40px; padding:0 14px; border-radius:10px;
+  border:1px solid var(--line); background:#b4f0f8; color:var(--ink);
+  font-weight:700; cursor:pointer; font-size:110%;
+}
+.btn:hover{ background:#7ff598; }
+.review-actions .btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  inline-size:110px; block-size:40px; padding:0 12px;
+}
+
+/* 좁은 화면에서 위→아래 정렬 */
+@media (max-width:560px){
+  .review-composer{
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "stars"
+      "recommend"
+      "text"
+      "actions";
+  }
+  .recommend-row{ justify-self:start; }
+}
+
+/* =====================*/
+/* Reviews List (열람)  */
+/* =====================*/
 .reviews-view{
   background:#fff;
   border-radius:16px;
   padding:24px;
   margin:16px auto 24px;
-  max-width:1000px;
+  max-width:1150px;
   box-shadow:0 6px 18px rgba(0,0,0,.06);
 }
 
@@ -15,138 +138,212 @@
 }
 .sort-btn{
   height:34px; padding:0 12px; border-radius:10px;
-  border:1px solid var(--line); background:#94a8bd; color:var(--ink-2);
+  border:1px solid var(--line); background:#94a8bd; color:#fff;
   font-weight:700; cursor:pointer;
 }
-.sort-btn.active{ color:var(--ink); border-color:#95a5b9; }
+.sort-btn.active{ filter:brightness(.95); }
 
-.review-list{ display:grid; gap:10px; }
+.review-list{ display:grid; gap:12px; }
 
+/* 3열: 아바타 / 본문 / 우측아이콘+별 */
 .review-card{
-  background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px;
-  display:grid; grid-template-columns:56px 1fr auto; gap:12px; align-items:start;
-}
-.avatar{
-  width:44px; height:44px;
-  border-radius:999px;
-  overflow:hidden;
-  background:#e2e8f0;      /* 이미지 없을 때 배경 */
-  display:grid; place-items:center;
-}
-.avatar > img{
-  width:100%; height:100%;
-  object-fit:cover;         /* 정사각/직사각 모두 얼굴만 꽉 차게 */
-  display:block;
+  display:grid;
+  grid-template-columns: 56px 1fr 130px;
+  align-items:start;
+  gap:14px;
+  padding:14px 16px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:12px;
 }
 
+/* 아바타 */
+.review-card .avatar{
+  width:56px; height:56px; border-radius:9999px; overflow:hidden;
+  background:#e2e8f0; display:grid; place-items:center;
+}
+.review-card .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
 
-.review-meta{ display:grid; gap:6px; }
-.review-user{ font-weight:800; }
-.review-text{ color:var(--ink); }
-.review-sub{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; color:var(--ink-2); font-size:14px; }
+/* 본문 영역 */
+.review-meta{ display:grid; gap:8px; }
+.review-headline{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.review-user{ font-weight:800; color:var(--ink); }
+.review-time{ color:var(--ink-2); font-size:13px; }
+.review-content{ color:var(--ink); }
 
-.inline-btn{ display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+/* 하단: 추천/비추천 버튼 */
+.review-actions-row{
+  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  color:var(--ink-2); font-size:14px;
+}
+.vote-btn{
+  display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+  padding:6px 10px; border:1px solid var(--line); border-radius:10px;
+  background:#fff; font-weight:600;
+}
+.vote-btn:hover{ background:#f8fafc; }
+.vote-btn .count{ min-width:1.5em; text-align:center; }
 
-.review-side{ display:grid; gap:8px; justify-items:end; min-width:120px; }
-.stars{ display:flex; gap:4px; font-size:20px; line-height:1; }
-.stars .on{ color:var(--star); }
-.stars .off{ color:#111; }
+/* 우측: 추천 아이콘 + 별점 */
+.review-side{
+  display:grid; gap:8px; justify-items:center; align-content:center;
+  min-width:110px;
+}
+.rec-icon{
+  width:var(--rec-size); height:var(--rec-size);
+  border-radius:9999px; display:grid; place-items:center;
+  font-size:20px; user-select:none; border:1px solid var(--line);
+}
+.rec-yes{ background:rgba(16,185,129,.12); color:#10b981; }
+.rec-no { background:rgba(239,68,68,.12);  color:#ef4444; }
 
+.side-stars{ display:flex; gap:4px; font-size:18px; line-height:1; }
+.side-stars .on{ color:var(--star); }
+.side-stars .off{ color:#9fb8d6; }
+
+/* 더보기 */
 .loadmore-btn{
   display:block; margin:8px auto 0; height:40px; padding:0 16px;
   border-radius:10px; border:1px solid var(--line); background:#fff; font-weight:700; cursor:pointer;
 }
 .loadmore-btn:hover{ background:#f8fafc; }
 
-/* 반응형 */
+/* 반응형: 우측 열 아래로 */
 @media (max-width:720px){
-  .review-card{ grid-template-columns:40px 1fr; }
-  .review-side{ grid-column:1 / -1; justify-items:start; }
+  .review-card{ grid-template-columns:48px 1fr; }
+  .review-side{ grid-column:1 / -1; justify-items:flex-start; align-content:start; }
 }
 
-    /* ===== Reviews (평가) ===== */
-.reviews-section{
-  background:#fff;
-  border-radius:16px;
-  padding:32px;
-  margin-bottom:24px;
-  box-shadow:0 24px 24px rgba(0,0,0,.06);
-  
+/* 禁用/高亮（通用） */
+.vote-btn[disabled], .vote-btn.disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
-/* 섹션 가로 가운데 */
-.reviews-section{
-  max-width: 1000px;     /* 원하는 폭 */
-  margin: 24px auto;     /* 가운데 정렬 */
+/* ——更强覆盖的已投票高亮—— */
+.vote-btn.active{
+  border-color: var(--brand) !important;
+  background: rgba(14,165,233,.10) !important;
+  color: var(--brand) !important;
+  box-shadow: 0 0 0 2px rgba(14,165,233,.10) inset !important;
+}
+.vote-btn.dislike.active{
+  border-color: #ef4444 !important;
+  background: rgba(239,68,68,.10) !important;
+  color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239,68,68,.10) inset !important;
 }
 
+/* =====================*/
+/* Replies (回帖样式)   */
+/* =====================*/
 
-/* 작성 박스 */
-.review-composer{
-  display:grid; gap:12px;
-  background:#f1efef;
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:16px;
+/* 父评论下的回帖容器 */
+.replies{
+  display: grid;
+  gap: 10px;
+  padding: 8px 0 4px 0;
 }
-.review-composer .row{ display:flex; align-items:center; gap:10px; }
 
-/* 별점 */
-.rating{
-  display:inline-flex;
-  flex-direction:row-reverse; /* 왼→오 채워지도록 */
-  gap:6px;
-  
+/* ——扁平化回帖卡片——
+   头像 / 主体 / 右上投票（小按钮）
+*/
+.reply-card{
+  display: grid;
+  grid-template-columns: 40px 1fr auto;   /* 更扁平：头像更小，右侧为投票 */
+  gap: 8px;
+  align-items: start;
+  padding: 8px 10px;                       /* 减小内边距，更扁平 */
+  border: 1px solid var(--line);
+  border-radius: 10px;                      /* 更小的圆角 */
+  background: #fff;
 }
-.rating input{ display:none; }
-.rating label{
-  font-size:28px; line-height:1;
-  color:#9fb8d6;              /* 빈 별: var(--line) 톤 */
-  cursor:pointer; user-select:none;
-}
-.rating label::before{ content:"★"; }
-.rating input:checked ~ label,
-.rating label:hover,
-.rating label:hover ~ label{ color:#f59e0b; } /* 채워진 별(골드) */
 
-/* 텍스트박스 */
-.review-composer textarea{
-  width:100%; min-height:160px;
-  padding:12px 14px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  outline:none; resize:vertical;
-  font:inherit; color:var(--ink); background:#e2ebf1;
-  box-sizing: border-box;
+/* 回帖头像更小 */
+.reply-card .avatar{
+  width:40px; height:40px;
+  border-radius:9999px; overflow:hidden;
+  background:#e2e8f0; display:grid; place-items:center;
+}
+.reply-card .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+/* 回帖主体更紧凑 */
+.reply-main{ display:grid; gap:4px; }
+.reply-user{ font-weight:800; color:var(--ink); }
+.reply-content{
+  color:var(--ink);
+  margin: 0;                 /* 去掉潜在 margin 让整体更紧凑 */
+  line-height: 1.35;         /* 更扁平的行高 */
+}
+.reply-time{ color:var(--ink-2); font-size:12px; }
+
+/* 右上角小号投票按钮，更扁平 */
+.reply-actions-top{
+  display:flex; gap:6px;
+  justify-self:end; align-self:start;
+}
+.vote-btn.small{
+  height:28px; padding:0 8px;               /* 更矮更窄 */
+  font-size:12px; line-height:28px;
+  border-radius:8px;
+}
+
+/* 保险：回帖不显示右侧推荐图标与星级（即使模板误带也隐藏） */
+.reply-card .review-side{ display: none !important; }
+/* === 回帖编辑框：做成扁平长方形，宽度占满，和回帖卡片尺寸接近 === */
+.replies .reply-form{
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.replies .reply-form-row{
+  display: grid;
+  grid-template-columns: 1fr auto; /* 左：textarea 右：发送按钮 */
+  gap: 10px;
+  align-items: start;
+}
+
+.replies .reply-form textarea{
   width: 100%;
-  max-width: 100%;   /* 사용자가 가로 리사이즈 못 하게 안전장치 */
+  min-height: 72px;            /* ← 想更高就调这个数，例如 88/96 */
+  max-height: 240px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: var(--ink);
+  font: inherit;
+  outline: none;
 }
-.review-composer textarea:focus{
+.replies .reply-form textarea:focus{
   border-color:#93c5fd;
   box-shadow:0 0 0 3px rgba(59,130,246,.15);
 }
 
-/* 버튼 행: 오른쪽 정렬 */
-.review-actions{ display:flex; gap:10px; justify-content:flex-end; }
-
-
-
-/* 버튼 */
-.btn{
-  height:40px; padding:0 14px; border-radius:10px;
-  border:1px solid var(--line); background:#b4f0f8; color:var(--ink);
-  font-weight:700; cursor:pointer;
-  font-size: 110%;
+/* 发送按钮（继承 .btn 的风格，保证高度对齐） */
+.replies .reply-send{
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #b4f0f8;
+  font-weight: 700;
+  cursor: pointer;
 }
-.btn:hover{ background:#7ff598; }
-.btn-primary{
-  background:var(--brand); border-color:transparent; color:#fff;
+.replies .reply-send:hover{ background:#7ff598; }
+
+/* 小屏适配：按钮换行到下面也能贴边 */
+@media (max-width: 560px){
+  .replies .reply-form-row{
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }
-.btn-primary:hover{ filter:brightness(.95); }
-.review-actions .btn{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 110px;   /* = width, 원하는 값으로 */
-  block-size: 40px;     /* = height (이미 40px이면 생략 가능) */
-  padding: 0 12px;      /* 고정폭일 때는 패딩 과하지 않게 */
+.hidden { display: none !important; }
+.replies[hidden] {
+  display: none !important;
 }

@@ -99,11 +99,21 @@ function renderGame(game, img_urls) {
   // 페이지 제목 설정
   document.title = `${game.title} - 갓겜판독기`
 
-  gameContent.innerHTML = `
-        <!-- 게임 헤더 -->
-        <section class="game-header">
-          <div class="game-header-content">
-           <div class="main-image-wrapper">
+ gameContent.innerHTML = `
+    <!-- 상단 네비게이션 버튼 -->
+    <div class="game-nav-buttons">
+      <button class="nav-btn active">
+        ⭐ 평가
+      </button>
+      <button class="nav-btn" onclick="goToCommunity('${game.game_id}', '${game.slug}', '${encodeURIComponent(game.title)}')">
+        💬 커뮤니티
+      </button>
+    </div>
+
+    <!-- 게임 헤더 -->
+    <section class="game-header">
+      <div class="game-header-content">
+        <div class="main-image-wrapper">
             <img id="mainImage" class="game-cover-large" src="placeholder.jpg" alt="게임 커버">
            </div>
             <!-- 썸네일 목록 -->
@@ -171,6 +181,10 @@ function renderGame(game, img_urls) {
         </section>
       `
       imgViewer(img_urls)
+
+      window.goToCommunity = function(gameId, gameSlug, gameTitle) {
+      window.location.href = `/board.html?game_id=${gameId}&slug=${gameSlug}&title=${gameTitle}`;
+    }
 }
 
 /*게임 데이터 load 함수*/

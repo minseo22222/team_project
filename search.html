@@ -27,8 +27,8 @@
             });
     </script>
     <!--header-->
-    <!--main-->
-
+    
+    <!--검색 결과-->
     <main>
 
         <div class="caption-box">
@@ -59,29 +59,31 @@
             </template>
         </section>
 
+        <!--검색 작업-->
         <script type="module">
             import supabase from './scripts/supabase.js';
-            // 현재 페이지의 URL에서 쿼리스트링 부분을 가져옴
+            
+            /*url의 파라미터 값얻어오기*/
             const params = new URLSearchParams(window.location.search);
-            // q 파라미터 값을 가져오기
             const q = params.get('q');
             console.log('검색어:', q);
-            // 예: 페이지 내 특정 요소에 표시하기
             document.getElementById('searchResultTitle').textContent = `${q}(와)과 일치하는 게임 목록`;
 
-            async function loadGames() {
 
+            /*검색 결과와 일치하는 게임들 반환하는 함수*/
+            async function loadGames() {
                 const { data } = await supabase
                     .from('Games')
                     .select('*')
                     .or(
-                        `title.ilike.%${q}%,developer.ilike.%${q}%,genre.ilike.%${q}%`
+                        `title.ilike.%${q}%,developer.ilike.%${q}%,genre.ilike.%${q}%,platform.ilike.%${q}%`
                     );
-
-                if (data && data.length > 0) {
-                    renderGames(data)
-                }
+                return data; 
             }
+
+
+
+            /*별점 그려주는 함수*/
             function setRating(score) {
                 if (score != null) {
                     const stars = document.querySelectorAll('.rate .star');
@@ -103,7 +105,9 @@
 
             }
 
-            function renderGames(games) {
+
+            /*데이터를 Card규격에 맞게 출력하고 정보 페이지로 연결하는 함수*/
+            function renderGameData(games) {
                 const grid = document.getElementById('gameGrid');
                 const tpl = document.getElementById('gameCardTpl');
                 grid.innerHTML = '';
@@ -132,7 +136,18 @@
                     grid.appendChild(node);
                 }
             }
-            loadGames();
+
+            /*검색 결과에 맞는 게임들 출력하는 함수*/
+            async function renderGames()
+            {
+                const data= await loadGames();
+                if (data && data.length > 0) {
+                    renderGameData(data)
+                }
+            }
+
+            /*최종 출력*/
+            renderGames();
         </script>
 
 

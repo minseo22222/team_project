@@ -1,20 +1,20 @@
+/*################################################################*/
+/*################################################################*/
+/*################################################################*/
+/*함수정의부*/
+
 import supabase from './supabase.js';
 
 const loading = document.getElementById('loading')
 const error = document.getElementById('error')
 const gameContent = document.getElementById('gameContent')
 
-// URL에서 게임 ID 추출
+/* URL에서 게임 ID 추출*/
 const params = new URLSearchParams(window.location.search)
 const gameId = params.get('id')
 
-if (!gameId) {
-  loading.style.display = 'none'
-  error.style.display = 'block'
-} else {
-  loadGameData()
-}
-async function getImageUrls(storage_path) { //이미지url 배열 반환 함수
+/*이미지 url 반환 함수*/
+async function getImageUrls(storage_path) { 
   // ① 스토리지 버킷 이름과 폴더 지정
   const bucket = 'games'        // 버킷 이름
   const folderPath = storage_path + '/'      // 폴더 경로 (없으면 '')
@@ -48,33 +48,7 @@ async function getImageUrls(storage_path) { //이미지url 배열 반환 함수
   return urls
 }
 
-
-async function loadGameData() {
-  try {
-    // Supabase에서 게임 데이터 조회
-    const { data: game, error: dbError } = await supabase
-      .from('Games')
-      .select('*')
-      .eq('slug', gameId)
-      .single()
-
-    if (dbError || !game) {
-      throw new Error('게임을 찾을 수 없습니다')
-    }
-
-    // 페이지 렌더링
-    const urls = await getImageUrls(game.storage_folder_name)
-    renderGame(game, urls)
-    loading.style.display = 'none'
-    gameContent.style.display = 'block'
-
-  } catch (err) {
-    console.error('Error loading game:', err)
-    loading.style.display = 'none'
-    error.style.display = 'block'
-  }
-}
-
+/*이미지 Viewer 함수*/
 function imgViewer(img_urls) {
   const mainImage = document.getElementById('mainImage');
   const thumbnailList = document.getElementById('thumbnailList');
@@ -97,6 +71,7 @@ function imgViewer(img_urls) {
   });
 }
 
+/*페이지 구현 함수*/
 function renderGame(game, img_urls) {
   const formatKRW = n => new Intl.NumberFormat('ko-KR').format(n)
 
@@ -154,7 +129,7 @@ function renderGame(game, img_urls) {
 
         <!-- 상세 정보 -->
         <section class="details-section">
-          <h2>📋 게임 정보</h2>
+          <h2>게임 정보</h2>
           <div class="detail-grid">
             ${game.developer ? `
               <div class="detail-item">
@@ -196,4 +171,42 @@ function renderGame(game, img_urls) {
         </section>
       `
       imgViewer(img_urls)
+}
+
+/*게임 데이터 load 함수*/
+async function loadGameData() {
+  try {
+    // Supabase에서 게임 데이터 조회
+    const { data: game, error: dbError } = await supabase
+      .from('Games')
+      .select('*')
+      .eq('slug', gameId)
+      .single()
+
+    if (dbError || !game) {
+      throw new Error('게임을 찾을 수 없습니다')
+    }
+
+    // 페이지 렌더링
+    const urls = await getImageUrls(game.storage_folder_name)
+    renderGame(game, urls)
+    loading.style.display = 'none'
+    gameContent.style.display = 'block'
+
+  } catch (err) {
+    console.error('Error loading game:', err)
+    loading.style.display = 'none'
+    error.style.display = 'block'
+  }
+}
+
+/*################################################################*/
+/*################################################################*/
+/*################################################################*/
+/*함수실행부*/
+if (!gameId) {
+  loading.style.display = 'none'
+  error.style.display = 'block'
+} else {
+  loadGameData()
 }

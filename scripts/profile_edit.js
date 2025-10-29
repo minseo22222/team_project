@@ -3,6 +3,7 @@ import supabase from './supabase.js';
 const profileImg = document.getElementById('profile_img')
 const uploadBtn = document.getElementById('uploadBtn')
 const nicknameInput = document.getElementById('nicknameInput')
+const showMyselfInput = document.getElementById('showMyselfInput')
 const saveBtn = document.getElementById('saveBtn')
 const rstBtn =document.getElementById('reset')
 
@@ -17,7 +18,7 @@ async function loadProfile() {
 
     const { data: profile, error } = await supabase
         .from('Users')
-        .select('nickname, profile_image_url, email')
+        .select('nickname, profile_image_url, email, showMyself')
         .eq('user_id', user.id)
         .maybeSingle()
 
@@ -26,6 +27,7 @@ async function loadProfile() {
 
     // 화면에 표시
     nicknameInput.value = profile.nickname || ''
+    showMyselfInput.value=profile.showMyself || ''
     profileImg.src = profile.profile_image_url || '/default_profile.png'
 }
 
@@ -73,7 +75,7 @@ saveBtn.addEventListener('click', async () => {
     }
 
     // 2️⃣ 닉네임 + 이미지 DB 업데이트
-    const updateData = { nickname: nicknameInput.value }
+    const updateData = { nickname: nicknameInput.value , showMyself: showMyselfInput.value}
     if (profileImageUrl) updateData.profile_image_url = profileImageUrl
 
     const { error: updateError } = await supabase

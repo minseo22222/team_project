@@ -58,7 +58,8 @@ async function checkAuthStatus() {
                 if (text === '내정보') {
                     closeMenu()
                     // 예: 프로필 페이지 이동
-                    window.location.href = '/profile.html'
+                    const url=`profile.html?id=${user.id}`;
+                    window.location.href = url;
                 } else if (text === '로그아웃') {
                     e.preventDefault()
                     await supabase.auth.signOut()

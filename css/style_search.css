@@ -515,22 +515,28 @@ header {
   padding: 10px 20px;
   z-index: 1000; /* 위에 표시되게 */
 }
+
 /* ✨ 캡션 박스 */
 .caption-box {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  background: rgba(0, 0, 0, 0.6); /* 반투명 검정 */
+  position: relative;
+  background: rgba(255, 255, 255, 0.4);
   padding: 8px 14px;
-  border-radius: 8px;
-  backdrop-filter: blur(2px); /* 배경 살짝 블러 */
+  border-radius: 12px;
+  width: 600px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  border: 2px solid transparent;
+  background-clip: padding-box, border-box;
+  background-origin: border-box;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), 
+    linear-gradient(135deg, #a2d2ff, #cdb4db, #ffc8dd);
   z-index: 2;
 }
 
 .caption {
-  color: #fff;
+  color: #000000;
   font-size: 1.2rem;
   font-weight: 600;
   letter-spacing: 0.3px;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }

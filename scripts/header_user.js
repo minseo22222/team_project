@@ -1,5 +1,13 @@
 import supabase from './supabase.js';
 
+// 검색 함수
+function onSearch() {
+  const q = document.getElementById('q').value.trim();
+  if (!q) return;
+  location.href =  `/search.html?q=${encodeURIComponent(q)}`;
+}
+window.onSearch = onSearch
+
 const authLink = document.getElementById('auth-link')
 const menu = document.getElementById('ddMenu')
 const profile_img = document.getElementById('user_profile')

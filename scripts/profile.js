@@ -62,13 +62,6 @@ async function loadProfile() {
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError) {
     console.error('사용자 인증 에러:', authError)
-    window.location.href = '/home.html'
-    return
-  }
-
-  if (!user) {
-    window.location.href = '/home.html'
-    return
   }
 
   // Users 테이블에서 프로필 정보 가져오기
@@ -91,14 +84,21 @@ async function loadProfile() {
   const editbtn = document.getElementById('editProfileBtn');
   const outbtn = document.getElementById('logout');
 
-  if (user.id != URLId) {
+  if (user != null) {
+    if (user.id != URLId) {
+      editbtn.style.display = 'none';
+      outbtn.style.display = 'none';
+    }
+    else {
+      editbtn.style.display = 'block';
+      outbtn.style.display = 'block';
+    }
+  }
+  else {
     editbtn.style.display = 'none';
     outbtn.style.display = 'none';
   }
-  else {
-    editbtn.style.display = 'block';
-    outbtn.style.display = 'block';
-  }
+
 
   showRates(URLId);
 

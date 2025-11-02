@@ -51,6 +51,9 @@ let CURRENT_USER_ID = null;
   // 监听登录状态变化：变化时刷新列表
   // 로그인 상태 변경 감지: 변경 시 목록 새로고침
   supabase.auth.onAuthStateChange(async (_event, session) => {
+    if (!session) {
+      return;
+    }
     const newId = session?.user?.id || null;
     if (newId !== CURRENT_USER_ID) {
       CURRENT_USER_ID = newId;

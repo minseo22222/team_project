@@ -8,6 +8,8 @@
   <!-- Quill.js CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.css" rel="stylesheet">
   <link rel="stylesheet" href="./css/style_board_post.css">
+  <link rel="stylesheet" href="./css/style_review.css">
+  <link rel="stylesheet" href="./css/style_board_comment.css">
 </head>
 <body>
   <div id="header"></div>
@@ -93,6 +95,32 @@
       </div>
     </div>
   </main>
+
+  <!-- 댓글 섹션 -->
+  <section class="reviews-section" id="comments-section" style="display: none;">
+    <h2>댓글 <span id="commentCountBadge">0</span></h2>
+
+    <!-- 댓글 작성 폼 -->
+    <form class="review-composer comment-composer" id="commentForm">
+      <textarea name="comment" placeholder="댓글을 입력해주세요..." required></textarea>
+      <div class="review-actions">
+        <input type="reset" value="다시쓰기" class="btn">
+        <input type="submit" value="댓글 작성" class="btn">
+      </div>
+    </form>
+  </section>
+
+  <!-- 댓글 목록 -->
+  <section class="reviews-view" id="comments-view" style="display: none;">
+    <div class="reviews-toolbar">
+      <button type="button" class="sort-btn active" data-sort="time">시간순 ▾</button>
+      <button type="button" class="sort-btn" data-sort="like">추천순 ▾</button>
+    </div>
+
+    <div id="comment-list" class="review-list" aria-live="polite"></div>
+
+    <button id="load-more" class="loadmore-btn" type="button" style="display: none;">추가 보기</button>
+  </section>
 
   <!-- Quill.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
@@ -194,9 +222,33 @@
         // 화면 표시
         document.getElementById('loading').style.display = 'none';
         document.getElementById('postContent').style.display = 'block';
+        document.getElementById('comments-section').style.display = 'block';
+        document.getElementById('comments-view').style.display = 'block';
 
         // 로그인 확인
-        await checkAuthStatus();
+        
+      await checkAuthStatus();
+
+      // 사용자의 투표 상태 불러오기
+      if (currentUser) {
+        const { data: userVote } = await supabase
+          .from('PostVotes')  // 
+          .select('vote_type')
+          .eq('post_id', postId)
+          .eq('user_id', currentUser.id)
+          .maybeSingle();
+
+        if (userVote) {
+          if (userVote.vote_type === 'like') {
+            document.getElementById('likeBtn').classList.add('active');
+          } else if (userVote.vote_type === 'dislike') {
+            document.getElementById('dislikeBtn').classList.add('active');
+          }
+        }
+      }
+
+        // 댓글 시스템 초기화
+        initCommentSystem();
 
       } catch (err) {
         console.error('Error loading post:', err);
@@ -223,8 +275,22 @@
 
       try {
         const likeBtn = document.getElementById('likeBtn');
+        const dislikeBtn = document.getElementById('dislikeBtn');
         const isLiked = likeBtn.classList.contains('active');
 
+        // 싫어요가 눌려있으면 먼저 취소
+        if (dislikeBtn.classList.contains('active')) {
+          const newDislikeCount = Math.max(0, (currentPost.dislike_count || 0) - 1);
+          await supabase
+            .from('board_posts')
+            .update({ dislike_count: newDislikeCount })
+            .eq('post_id', postId);
+          currentPost.dislike_count = newDislikeCount;
+          document.getElementById('dislikeCount').textContent = newDislikeCount;
+          dislikeBtn.classList.remove('active');
+        }
+
+        // 좋아요 토글
         if (isLiked) {
           const newCount = Math.max(0, (currentPost.like_count || 0) - 1);
           const { error } = await supabase
@@ -264,9 +330,23 @@
       }
 
       try {
+        const likeBtn = document.getElementById('likeBtn');
         const dislikeBtn = document.getElementById('dislikeBtn');
         const isDisliked = dislikeBtn.classList.contains('active');
 
+        // 좋아요가 눌려있으면 먼저 취소
+        if (likeBtn.classList.contains('active')) {
+          const newLikeCount = Math.max(0, (currentPost.like_count || 0) - 1);
+          await supabase
+            .from('board_posts')
+            .update({ like_count: newLikeCount })
+            .eq('post_id', postId);
+          currentPost.like_count = newLikeCount;
+          document.getElementById('likeCount').textContent = newLikeCount;
+          likeBtn.classList.remove('active');
+        }
+
+        // 싫어요 토글
         if (isDisliked) {
           const newCount = Math.max(0, (currentPost.dislike_count || 0) - 1);
           const { error } = await supabase
@@ -300,14 +380,10 @@
 
     // 수정 모드 진입
     window.editPost = function() {
-      // 본문 숨기고 수정 폼 표시
       document.getElementById('postContentText').style.display = 'none';
       document.getElementById('editForm').style.display = 'block';
-
-      // 제목 입력
       document.getElementById('editTitle').value = currentPost.title;
 
-      // Quill 에디터 초기화
       if (!editQuill) {
         editQuill = new Quill('#editEditor', {
           theme: 'snow',
@@ -325,7 +401,6 @@
         });
       }
       
-      // 기존 내용 로드
       editQuill.root.innerHTML = currentPost.content;
     };
 
@@ -360,7 +435,6 @@
 
         alert('게시글이 수정되었습니다.');
         
-        // 게시글 다시 로드
         currentPost.title = newTitle;
         currentPost.content = newContent;
         document.getElementById('postTitle').textContent = newTitle;
@@ -392,6 +466,448 @@
         alert('삭제 중 오류가 발생했습니다.');
       }
     };
+
+    // ========== 댓글 시스템 ==========
+    const USERS_TABLE = 'Users';
+    const USER_PK_COL = 'user_id';
+    const PAGE_SIZE = 10;
+    
+    let commentPage = 0;
+    let sortMode = 'time';
+    let CURRENT_USER_ID = null;
+
+    async function initCommentSystem() {
+      const { data: { user } } = await supabase.auth.getUser();
+      CURRENT_USER_ID = user?.id || null;
+
+      // 로그인 상태 변화 감지
+      supabase.auth.onAuthStateChange(async (_event, session) => {
+        const newId = session?.user?.id || null;
+        if (newId !== CURRENT_USER_ID) {
+          CURRENT_USER_ID = newId;
+          await reloadComments();
+        }
+      });
+
+      bindCommentEvents();
+      await reloadComments();
+    }
+
+    function bindCommentEvents() {
+      const sortBtns = document.querySelectorAll('.sort-btn');
+      const loadMoreBtn = document.getElementById('load-more');
+      const commentForm = document.getElementById('commentForm');
+      const commentList = document.getElementById('comment-list');
+
+      // 정렬
+      sortBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (btn.classList.contains('active')) return;
+          sortBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          sortMode = btn.dataset.sort;
+          await reloadComments();
+        });
+      });
+
+      // 더보기
+      loadMoreBtn?.addEventListener('click', async () => {
+        commentPage += 1;
+        await fetchAndRenderComments({ append: true });
+      });
+
+      // 댓글 작성
+      commentForm?.addEventListener('submit', onSubmitComment);
+
+      // 투표 & 답글 토글
+      commentList.addEventListener('click', onCommentVoteClick);
+      commentList.addEventListener('click', onRepliesToggle);
+      commentList.addEventListener('submit', onReplySubmit);
+    }
+
+    async function onSubmitComment(e) {
+      e.preventDefault();
+
+      if (!CURRENT_USER_ID) {
+        alert('로그인 후 이용할 수 있어요.');
+        location.href = `./login.html?redirect=${encodeURIComponent(location.href)}`;
+        return;
+      }
+
+      const fd = new FormData(e.target);
+      const content = String(fd.get('comment') || '').trim();
+
+      if (!content) {
+        alert('내용을 입력해 주세요.');
+        return;
+      }
+
+      const { error } = await supabase.from('Comments').insert({
+        post_id: postId,
+        user_id: CURRENT_USER_ID,
+        content,
+        parent_comment_id: null,
+        game_id: null,
+        rating: null,
+        is_recommended: null
+      });
+
+      if (error) {
+        alert('저장 실패: ' + error.message);
+        return;
+      }
+
+      e.target.reset();
+      await reloadComments();
+    }
+
+    async function onCommentVoteClick(e) {
+      const btn = e.target.closest('.vote-btn');
+      if (!btn) return;
+
+      if (!CURRENT_USER_ID) {
+        alert('로그인 후 이용할 수 있어요.');
+        location.href = `./login.html?redirect=${encodeURIComponent(location.href)}`;
+        return;
+      }
+
+      const card = btn.closest('[data-owner]');
+      const ownerId = card?.dataset.owner;
+      if (ownerId && ownerId === CURRENT_USER_ID) {
+        alert('본인 댓글에는 추천/비추천을 할 수 없어요.');
+        return;
+      }
+
+      const commentId = btn.dataset.id;
+      const want = btn.classList.contains('like') ? 1 : -1;
+
+      const { data: existing, error: qErr } = await supabase
+        .from('CommentVotes')
+        .select('vote_id, value')
+        .eq('comment_id', commentId)
+        .eq('user_id', CURRENT_USER_ID)
+        .maybeSingle();
+
+      if (qErr) {
+        alert('처리 중 오류가 발생했습니다.');
+        return;
+      }
+
+      let opErr = null;
+
+      if (!existing) {
+        const { error } = await supabase.from('CommentVotes').insert({
+          comment_id: commentId,
+          user_id: CURRENT_USER_ID,
+          value: want
+        });
+        opErr = error;
+      } else if (existing.value === want) {
+        const { error } = await supabase
+          .from('CommentVotes')
+          .delete()
+          .eq('vote_id', existing.vote_id);
+        opErr = error;
+      } else {
+        const { error } = await supabase
+          .from('CommentVotes')
+          .update({ value: want })
+          .eq('vote_id', existing.vote_id);
+        opErr = error;
+      }
+
+      if (opErr) {
+        alert('투표 실패: ' + opErr.message);
+        return;
+      }
+
+      await reloadComments();
+    }
+
+    async function onRepliesToggle(e) {
+      const t = e.target.closest('.replies-toggle');
+      if (!t) return;
+
+      const parentId = t.dataset.id;
+      if (!parentId) return;
+
+      const box = document.getElementById(`replies-${parentId}`);
+      if (!box) return;
+
+      const isHidden = box.classList.contains('hidden') || box.hasAttribute('hidden');
+
+      if (isHidden) {
+        if (!box.dataset.loaded) {
+          await loadReplies(parentId, box);
+          box.dataset.loaded = '1';
+        }
+        box.classList.remove('hidden');
+        box.removeAttribute('hidden');
+        t.setAttribute('aria-expanded', 'true');
+      } else {
+        box.classList.add('hidden');
+        t.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    async function onReplySubmit(e) {
+      const form = e.target.closest('.reply-form');
+      if (!form) return;
+      e.preventDefault();
+
+      if (!CURRENT_USER_ID) {
+        alert('로그인 후 이용할 수 있어요.');
+        location.href = `./login.html?redirect=${encodeURIComponent(location.href)}`;
+        return;
+      }
+
+      const parentId = form.dataset.parent;
+      const ta = form.querySelector('textarea');
+      const content = String(ta?.value || '').trim();
+      if (!content) {
+        alert('내용을 입력해 주세요.');
+        return;
+      }
+
+      const { error } = await supabase.from('Comments').insert({
+        post_id: postId,
+        user_id: CURRENT_USER_ID,
+        content,
+        parent_comment_id: parentId,
+        game_id: null,
+        rating: null,
+        is_recommended: null
+      });
+
+      if (error) {
+        alert('등록 실패: ' + error.message);
+        return;
+      }
+
+      if (ta) ta.value = '';
+
+      const box = document.getElementById(`replies-${parentId}`);
+      if (box) {
+        const count = await loadReplies(parentId, box);
+        const toggle = document.querySelector(`.replies-toggle[data-id="${parentId}"] .reply-count`);
+        if (toggle) toggle.textContent = String(count);
+      }
+    }
+
+    async function loadReplies(parentId, box) {
+      const { data: replies, error } = await supabase
+        .from('Comments')
+        .select('comment_id,user_id,content,created_at,like_count,dislike_count')
+        .eq('parent_comment_id', parentId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        box.innerHTML = `<div class="empty-replies">불러오기 실패</div>`;
+        return 0;
+      }
+
+      const uids = [...new Set((replies || []).map(r => r.user_id))];
+      let uMap = new Map();
+      if (uids.length) {
+        const { data: users } = await supabase
+          .from(USERS_TABLE)
+          .select(`${USER_PK_COL}, nickname, profile_image_url`)
+          .in(USER_PK_COL, uids);
+        uMap = new Map((users || []).map(u => [u[USER_PK_COL], u]));
+      }
+
+      let voteMap = new Map();
+      if (CURRENT_USER_ID && replies?.length) {
+        const ids = replies.map(r => r.comment_id);
+        const { data: myVotes } = await supabase
+          .from('CommentVotes')
+          .select('comment_id,value')
+          .eq('user_id', CURRENT_USER_ID)
+          .in('comment_id', ids);
+        voteMap = new Map((myVotes || []).map(v => [v.comment_id, v.value]));
+      }
+
+      const composer = CURRENT_USER_ID
+        ? `<form class="reply-form" data-parent="${parentId}">
+            <div class="reply-form-row">
+              <textarea name="reply" placeholder="답글을 입력해 주세요" required></textarea>
+              <button type="submit" class="btn reply-send">게시</button>
+            </div>
+          </form>`
+        : `<div class="reply-login-hint">로그인 후 답글을 작성할 수 있어요.</div>`;
+
+      const items = (replies || []).map(r => {
+        const u = uMap.get(r.user_id) || {};
+        const likeAct = voteMap.get(r.comment_id) === 1 ? 'active' : '';
+        const dislikeAct = voteMap.get(r.comment_id) === -1 ? 'active' : '';
+        const avatar = (u.profile_image_url && typeof u.profile_image_url === 'string')
+          ? u.profile_image_url
+          : `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(r.user_id || 'anon')}`;
+
+        const needLogin = !CURRENT_USER_ID;
+        const isOwn = CURRENT_USER_ID && r.user_id === CURRENT_USER_ID;
+        const disable = needLogin || isOwn;
+        const titleTip = needLogin ? '로그인 후 이용할 수 있어요.' : (isOwn ? '본인 댓글에는 추천/비추천을 할 수 없어요.' : '');
+        const disAttr = disable ? `disabled aria-disabled="true" title="${titleTip}"` : '';
+        const disCls = disable ? ' disabled' : '';
+
+        return `
+          <article class="reply-card" data-id="${r.comment_id}" data-owner="${r.user_id}">
+            <div class="avatar"><img src="${esc(avatar)}" alt=""></div>
+            <div class="reply-main">
+              <div class="reply-user">${esc(u.nickname || '익명')}</div>
+              <p class="reply-content">${esc(r.content || '')}</p>
+              <time class="reply-time">${r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : ''}</time>
+            </div>
+            <div class="reply-actions-top">
+              <button class="vote-btn small like ${likeAct}${disCls}" data-id="${r.comment_id}" ${disAttr}>
+                👍 <span class="count">${r.like_count ?? 0}</span>
+              </button>
+              <button class="vote-btn small dislike ${dislikeAct}${disCls}" data-id="${r.comment_id}" ${disAttr}>
+                👎 <span class="count">${r.dislike_count ?? 0}</span>
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      box.innerHTML = composer + items;
+      return replies?.length || 0;
+    }
+
+    async function reloadComments() {
+      commentPage = 0;
+      await fetchAndRenderComments({ append: false });
+    }
+
+    async function fetchAndRenderComments({ append }) {
+      const orderCol = (sortMode === 'like') ? 'like_count' : 'created_at';
+      const ascending = false;
+
+      const from = commentPage * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data: comments, error, count } = await supabase
+        .from('Comments')
+        .select('comment_id, user_id, content, like_count, dislike_count, reply_count, created_at', { count: 'exact' })
+        .eq('post_id', postId)
+        .is('parent_comment_id', null)
+        .order(orderCol, { ascending })
+        .range(from, to);
+
+      if (error) {
+        document.getElementById('comment-list').innerHTML = '<p class="error">댓글을 불러올 수 없습니다</p>';
+        return;
+      }
+
+      // 총 댓글 수 업데이트
+      document.getElementById('commentCountBadge').textContent = count || 0;
+
+      const userIds = Array.from(new Set((comments || []).map(r => r.user_id).filter(Boolean)));
+      let profileMap = new Map();
+      if (userIds.length) {
+        const { data: users } = await supabase
+          .from(USERS_TABLE)
+          .select(`${USER_PK_COL}, nickname, profile_image_url`)
+          .in(USER_PK_COL, userIds);
+        profileMap = new Map((users || []).map(u => [u[USER_PK_COL], u]));
+      }
+
+      let topVotesMap = new Map();
+      if (CURRENT_USER_ID && comments?.length) {
+        const ids = comments.map(c => c.comment_id);
+        const { data: myVotes } = await supabase
+          .from('CommentVotes')
+          .select('comment_id,value')
+          .eq('user_id', CURRENT_USER_ID)
+          .in('comment_id', ids);
+        topVotesMap = new Map((myVotes || []).map(v => [v.comment_id, v.value]));
+      }
+
+      const rows = (comments || []).map(r => {
+        const u = profileMap.get(r.user_id);
+        const nickname = u?.nickname || ('User-' + String(r.user_id || '').slice(0, 8));
+        const avatar = (u?.profile_image_url && typeof u.profile_image_url === 'string')
+          ? u.profile_image_url
+          : `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(r.user_id || 'anon')}`;
+        const myVote = topVotesMap.get(r.comment_id) || 0;
+        return renderCommentItem({ ...r, nickname, avatar, myVote });
+      });
+
+      const html = rows.join('');
+      const listEl = document.getElementById('comment-list');
+      
+      if (append) {
+        listEl?.insertAdjacentHTML('beforeend', html);
+      } else {
+        listEl.innerHTML = html || '<p class="empty">아직 댓글이 없어요. 첫 댓글을 남겨 보세요!</p>';
+      }
+
+      const shown = Math.min(to + 1, count ?? 0);
+      const loadMoreBtn = document.getElementById('load-more');
+      if (loadMoreBtn) {
+        loadMoreBtn.style.display = (!!count && shown < count) ? '' : 'none';
+      }
+    }
+
+    function renderCommentItem(r) {
+      const timeTxt = r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '';
+      const like = r.like_count ?? 0;
+      const dislike = r.dislike_count ?? 0;
+
+      const needLogin = !CURRENT_USER_ID;
+      const isOwn = CURRENT_USER_ID && r.user_id === CURRENT_USER_ID;
+      const disableVote = needLogin || isOwn;
+      const reason = needLogin
+        ? '로그인 후 이용할 수 있어요.'
+        : '본인 댓글에는 추천/비추천을 할 수 없어요.';
+      const disAttr = disableVote ? `disabled aria-disabled="true" title="${reason}"` : '';
+      const disCls = disableVote ? ' disabled' : '';
+
+      const likeAct = r.myVote === 1 ? 'active' : '';
+      const dislikeAct = r.myVote === -1 ? 'active' : '';
+
+      return `
+        <article class="review-card" data-id="${r.comment_id}" data-owner="${r.user_id}">
+          <div class="avatar">
+            <img src="${esc(r.avatar)}" alt="" />
+          </div>
+
+          <div class="review-meta">
+            <div class="review-headline">
+              <strong class="review-user">${esc(r.nickname)}</strong>
+              <time class="review-time" datetime="${r.created_at || ''}">${esc(timeTxt)}</time>
+            </div>
+
+            <p class="review-content">${esc(r.content || '')}</p>
+
+            <div class="review-actions-row">
+              <button class="vote-btn like ${likeAct}${disCls}" data-id="${r.comment_id}" ${disAttr} aria-label="추천">
+                👍 <span class="count">${like}</span>
+              </button>
+              <button class="vote-btn dislike ${dislikeAct}${disCls}" data-id="${r.comment_id}" ${disAttr} aria-label="비추천">
+                👎 <span class="count">${dislike}</span>
+              </button>
+
+              <button class="replies-toggle" data-id="${r.comment_id}" aria-expanded="false" title="답글 보기">
+                💬 <span class="reply-count">${r.reply_count || 0}</span>
+              </button>
+            </div>
+
+            <div class="replies hidden" id="replies-${r.comment_id}"></div>
+          </div>
+        </article>
+      `;
+    }
+
+    function esc(s) {
+      return String(s ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
   </script>
 </body>
 </html>

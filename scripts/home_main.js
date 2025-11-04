@@ -117,9 +117,9 @@ async function loadGames(type) {
 }
 
 /*별점 색칠 함수*/
-function setRating(score) {
+function setRating(score,rateEl) {
     if (score != null) {
-        const stars = document.querySelectorAll('.rate .star');  
+        const stars = rateEl.querySelectorAll('.star');  
         stars.forEach((star, index) => {  
             star.classList.remove('full', 'half');
             if (score >= index + 1) {      
@@ -132,7 +132,7 @@ function setRating(score) {
         });
     }
     else {
-        console.log("평점이null값!");
+        console.log("평점이 NULL!!");
     }
 }
 
@@ -160,7 +160,7 @@ function renderGamePopular(games) {
         const priceBox = node.querySelector('.price');
         priceBox.innerHTML = `<span>${g.developer || '개발사 정보 없음'}</span>`;
 
-        setRating(g.avg_rating)
+        setRating(g.avg_rating,node.querySelector('.rate'))
         grid.appendChild(node);
     }
 }

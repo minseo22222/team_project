@@ -68,17 +68,30 @@ let CURRENT_USER_ID = null;
   // 通过 slug 查询 game_id | slug로 game_id 조회
   const { data: gameRow, error: gErr } = await supabase
     .from('Games')
-    .select('game_id')
+    .select('game_id,release_date')
     .eq('slug', SLUG)
     .single();
   if (gErr || !gameRow?.game_id) {
     console.error('게임 조회 실패:', gErr);
     return fail('게임을 찾을 수 없습니다.');
   }
-  GAME_ID = gameRow.game_id;
+  const today = new Date().toISOString().slice(0, 10);
+  if (gameRow.release_date <= today) {
+    GAME_ID = gameRow.game_id;
 
-  bindEvents();
-  await reload();
+    bindEvents();
+    await reload();
+  }
+  else {
+    const today = new Date();
+    const releaseDate = new Date(gameRow.release_date);
+
+    const diffDay = Math.ceil((releaseDate - today) / (1000 * 60 * 60 * 24));
+    document.getElementById('reviews').style.display = 'none';
+    document.getElementById('load-more').textContent = `출시까지 D-  ${diffDay}`;
+    console.log("미출시")
+    console.log(gameRow.release_date)
+  }
 })();
 
 /* =========================================

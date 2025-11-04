@@ -27,7 +27,7 @@
             });
     </script>
     <!--header-->
-    
+
     <!--검색 결과-->
     <main>
 
@@ -62,7 +62,7 @@
         <!--검색 작업-->
         <script type="module">
             import supabase from './scripts/supabase.js';
-            
+
             /*url의 파라미터 값얻어오기*/
             const params = new URLSearchParams(window.location.search);
             const q = params.get('q');
@@ -78,18 +78,17 @@
                     .or(
                         `title.ilike.%${q}%,developer.ilike.%${q}%,genre.ilike.%${q}%,platform.ilike.%${q}%`
                     );
-                return data; 
+                return data;
             }
 
 
 
             /*별점 그려주는 함수*/
-            function setRating(score) {
+            function setRating(score, rateEl) {
                 if (score != null) {
-                    const stars = document.querySelectorAll('.rate .star');
+                    const stars = rateEl.querySelectorAll('.star');
                     stars.forEach((star, index) => {
                         star.classList.remove('full', 'half');
-
                         if (score >= index + 1) {
                             star.classList.add('full'); // 완전 채움
                         } else if (score >= index + 0.5) {
@@ -100,9 +99,8 @@
                     });
                 }
                 else {
-                    console.log("평점이null값!");
+                    console.log("평점이 NULL!!");
                 }
-
             }
 
 
@@ -130,17 +128,16 @@
 
                     const priceBox = node.querySelector('.price');
                     priceBox.innerHTML = `<span>${g.developer || '개발사 정보 없음'}</span>`;
-
-                    setRating(g.avg_rating)
+        
+                    setRating(g.avg_rating, node.querySelector('.rate'))
 
                     grid.appendChild(node);
                 }
             }
 
             /*검색 결과에 맞는 게임들 출력하는 함수*/
-            async function renderGames()
-            {
-                const data= await loadGames();
+            async function renderGames() {
+                const data = await loadGames();
                 if (data && data.length > 0) {
                     renderGameData(data)
                 }

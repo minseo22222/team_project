@@ -48,6 +48,10 @@ let CURRENT_USER_ID = null;
   const { data:{ user } } = await supabase.auth.getUser();
   CURRENT_USER_ID = user?.id || null;
 
+  // 关闭浏览器原生表单校验（用我们自己的 JS 校验）
+  // 브라우저 기본 폼 검증 비활성화(커스텀 JS 검증 사용)
+  formEl?.setAttribute('novalidate', 'true');
+
   // 监听登录状态变化：变化时刷新列表
   // 로그인 상태 변경 감지: 변경 시 목록 새로고침
   supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -130,11 +134,34 @@ async function onSubmitComment(e) {
   if (!GAME_ID) { alert('game_id 를 찾을 수 없습니다.'); return; }
 
   const fd = new FormData(formEl);
-  const rating  = Number(fd.get('rating'));
-  const content = String(fd.get('comment') || '').trim();
-  const isRecommended = fd.get('is_recommended') === '1' ? 1 : 0;
 
-  if (!rating || !content) { alert('별점과 내용을 입력해 주세요.'); return; }
+  // ⭐ 星级校验：未选则为 null（自定义弹窗+滚动至星级区域）
+  // ⭐ 별점 검증: 미선택이면 null (커스텀 알럿 + 별점 영역 스크롤)
+  const ratingRaw = fd.get('rating');
+  if (ratingRaw === null) {
+    alert('별점을 선택해 주세요.'); // 请选择星级
+    formEl.querySelector('.rating')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  const rating = Number(ratingRaw);
+
+  // 👍/👎 推荐校验：未选则为 null（自定义弹窗+滚动至推荐区域）
+  // 👍/👎 추천 검증: 미선택이면 null (커스텀 알럿 + 추천 영역 스크롤)
+  const recRaw = fd.get('is_recommended');
+  if (recRaw === null) {
+    alert('추천/비추천을 선택해 주세요.'); // 请选择推荐/不推荐
+    formEl.querySelector('.recommend')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  const isRecommended = Number(recRaw); // 1 or 0
+
+  // 📝 评论内容 | 댓글 내용
+  const content = String(fd.get('comment') || '').trim();
+  if (!content) {
+    alert('내용을 입력해 주세요.'); // 请输入内容
+    formEl.querySelector('textarea[name="comment"]')?.focus();
+    return;
+  }
 
   // 友好前置检查（数据库已有唯一约束兜底）
   // 사전 확인 (DB의 유니크 제약으로 최종 보강)

@@ -10,11 +10,11 @@ const error = document.getElementById('error')
 const gameContent = document.getElementById('gameContent')
 
 /* URL에서 게임 ID 추출*/
-const params = new URLSearchParams(window.location.search)
-const gameId = params.get('id')
+const params = new URLSearchParams(window.location.search);
+const gameId = params.get('id');
 
 /*이미지 url 반환 함수*/
-async function getImageUrls(storage_path) { 
+async function getImageUrls(storage_path) {
   // ① 스토리지 버킷 이름과 폴더 지정
   const bucket = 'games'        // 버킷 이름
   const folderPath = storage_path + '/'      // 폴더 경로 (없으면 '')
@@ -99,7 +99,7 @@ function renderGame(game, img_urls) {
   // 페이지 제목 설정
   document.title = `${game.title} - 갓겜판독기`
 
- gameContent.innerHTML = `
+  gameContent.innerHTML = `
     <!-- 상단 네비게이션 버튼 -->
     <div class="game-nav-buttons">
       <button class="nav-btn active">
@@ -180,11 +180,11 @@ function renderGame(game, img_urls) {
           </div>
         </section>
       `
-      imgViewer(img_urls)
+  imgViewer(img_urls)
 
-      window.goToCommunity = function(gameId, gameSlug, gameTitle) {
-      window.location.href = `/board.html?game_id=${gameId}&slug=${gameSlug}&title=${gameTitle}`;
-    }
+  window.goToCommunity = function (gameId, gameSlug, gameTitle) {
+    window.location.href = `/board.html?game_id=${gameId}&slug=${gameSlug}&title=${gameTitle}`;
+  }
 }
 
 /*게임 데이터 load 함수*/
@@ -224,3 +224,4 @@ if (!gameId) {
 } else {
   loadGameData()
 }
+console.log(gameId)

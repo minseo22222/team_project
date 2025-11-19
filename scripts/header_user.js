@@ -2,9 +2,9 @@ import supabase from './supabase.js';
 
 // 검색 함수
 function onSearch() {
-  const q = document.getElementById('q').value.trim();
-  if (!q) return;
-  location.href =  `/search.html?q=${encodeURIComponent(q)}`;
+    const q = document.getElementById('q').value.trim();
+    if (!q) return;
+    location.href = `/search.html?q=${encodeURIComponent(q)}`;
 }
 window.onSearch = onSearch
 
@@ -41,9 +41,9 @@ async function checkAuthStatus() {
         authLink.href = '#'
 
         profile_img.src = profile.profile_image_url
-        profile_img.width=40;
-        profile_img.height=40;
-        profile_img.style="background-color: white; border-radius: 50%; object-fit: cover;"
+        profile_img.width = 40;
+        profile_img.height = 40;
+        profile_img.style = "background-color: white; border-radius: 50%; object-fit: cover;"
         // 클릭 시 메뉴 토글
         authLink.addEventListener('click', (e) => {
             e.stopPropagation()
@@ -58,11 +58,12 @@ async function checkAuthStatus() {
                 if (text === '내정보') {
                     closeMenu()
                     // 예: 프로필 페이지 이동
-                    window.location.href = '/profile.html'
+                    const url = `profile.html?id=${user.id}`;
+                    window.location.href = url;
                 } else if (text === '로그아웃') {
                     e.preventDefault()
-                    await supabase.auth.signOut()
-                    window.location.reload()
+                    await supabase.auth.signOut();
+                    window.location.reload();
                 }
             })
         })
@@ -74,7 +75,7 @@ async function checkAuthStatus() {
     } else {
         // ❌ 로그아웃 상태
         authLink.textContent = '로그인'
-        const redirectTo= document.getElementById('redirect').textContent;
+        const redirectTo = document.getElementById('redirect').textContent;
         authLink.href = `../login.html?redirect=${redirectTo}`
     }
 }

@@ -20,16 +20,18 @@
             padding: 28px 24px;
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 
             display: flex;
-            /* 가로 정렬 */
-            align-items: center;
-            /* 수직 중앙 맞춤 */
+            align-items: flex-start;
+            /* 세로 상단 정렬 */
             gap: 16px;
-            /* 이미지와 텍스트 사이 간격 */
+            /* 이미지와 텍스트 사이 */
+            justify-content: center;
+            /* 카드 전체는 가운데 */
         }
 
+        /* 프로필 이미지 */
         .profile-img {
             width: 100px;
             height: 100px;
@@ -37,15 +39,15 @@
             border: 2px solid #d7dbe0;
             flex-shrink: 0;
             background-color: white;
-            /* 이미지 크기 고정 */
         }
 
+        /* 텍스트 블록 */
         .profile-info {
             display: flex;
             flex-direction: column;
-            /* 글자 세로로 쌓이게 */
-            justify-content: center;
-            /* 카드 높이 기준 가운데 정렬 */
+            /* 위->아래로 쌓기 */
+            justify-content: flex-start;
+            /* 텍스트 블록 위쪽부터 시작 */
         }
 
         .profile-info h2 {
@@ -104,6 +106,47 @@
                 padding: 18px 14px;
             }
         }
+
+        .intro-card {
+            background: linear-gradient(135deg, #f9f9f9, #e6e0e0);
+            padding: 20px;
+            border-radius: 16px;
+            color: #333;
+            font-weight: bold;
+            text-align: left;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            margin-bottom: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .game_img {
+            width: 70%;
+            height: 70%;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            /* 이미지 크기 유지 */
+        }
+
+        /* 게임 타이틀 */
+        .game {
+            font-size: 22px;
+            font-weight: 700;
+            color: #4a4a4a;
+            line-height: 1.2;
+        }
+
+        /* 별점 */
+        .stars {
+            font-size: 16px;
+            color: #f5c518;
+            line-height: 1.2;
+        }
+
+        a.no-underline {
+            text-decoration: none;
+            color: inherit;
+        }
     </style>
 </head>
 
@@ -117,6 +160,13 @@
                 <button id="logout">로그아웃</button>
             </div>
             <div class="info" id="email">이메일: example@example.com</div>
+            <div class="intro-card">
+                <div class="info" id="showMyself">자기소개없음</div>
+            </div>
+            <div class="intro-card">
+                <div class="info">내가 작성한 평가</div>
+                <div class="rate-list" id="rateList"></div>
+            </div>
         </div>
     </div>
     <script type="module" src="/scripts/profile.js"></script>

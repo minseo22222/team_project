@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>검색</title>
+    <title>커뮤니티</title>
     <link rel="stylesheet" href="./css/style_search.css">
 </head>
 
@@ -26,15 +26,12 @@
                 document.body.appendChild(script);
             });
     </script>
-    <!--header-->
-
-    <!--검색 결과-->
+    <!--/header-->
     <main>
-
         <div class="caption-box">
-            <h3 class="caption" id="searchResultTitle"></h3>
+            <h3 class="caption">[커뮤니티]게임을 찾고 유저들과 소통하세요.</h3>
         </div>
-        <section class="section">
+         <section class="section">
             <div class="game-grid" id="gameGrid"></div>
             <template id="gameCardTpl">
                 <article class="game-card">
@@ -58,26 +55,15 @@
                 </article>
             </template>
         </section>
-
-        <!--검색 작업-->
         <script type="module">
             import supabase from './scripts/supabase.js';
 
-            /*url의 파라미터 값얻어오기*/
-            const params = new URLSearchParams(window.location.search);
-            const q = params.get('q');
-            console.log('검색어:', q);
-            document.getElementById('searchResultTitle').textContent = `${q}(와)과 일치하는 게임 목록`;
 
-
-            /*검색 결과와 일치하는 게임들 반환하는 함수*/
+            /*게임들 반환하는 함수*/
             async function loadGames() {
                 const { data } = await supabase
                     .from('Games')
-                    .select('*')
-                    .or(
-                        `title.ilike.%${q}%,developer.ilike.%${q}%,genre.ilike.%${q}%,platform.ilike.%${q}%`
-                    );
+                    .select('*');
                 return data;
             }
 
@@ -112,7 +98,8 @@
                 for (const g of games) {
                     const node = tpl.content.firstElementChild.cloneNode(true);
 
-                    node.querySelector('.link').href = `/game.html?id=${g.slug}`;
+                    node.querySelector('.link').href = 
+                    `/board.html?game_id=${g.game_id}&slug=${g.slug}&title=${g.title}`;
                     const img = node.querySelector('.game-cover');
                     img.src = g.cover_image_url || '1.jpg';
                     img.alt = `${g.title} 커버`;
@@ -135,7 +122,7 @@
                 }
             }
 
-            /*검색 결과에 맞는 게임들 출력하는 함수*/
+            /*게임들 출력하는 함수*/
             async function renderGames() {
                 const data = await loadGames();
                 if (data && data.length > 0) {
@@ -146,9 +133,8 @@
             /*최종 출력*/
             renderGames();
         </script>
-
-
     </main>
+
 </body>
 
 </html>

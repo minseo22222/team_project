@@ -1,363 +1,230 @@
-/* =====================*/
-/* Vars                 */
-/* =====================*/
-:root{
-  --star:  #facc15;   /* 별 색 */
-  --brand: #0ea5e9;   /* 포인트 컬러 */
-  --line:  #e5e7eb;   /* 경계선 */
-  --ink:   #0f172a;   /* 본문 글자 */
-  --ink-2: #475569;   /* 보조 글자 */
-  --rec-size: 42px;   /* 추천 아이콘 크기 */
+/* =========================================
+   1. 리뷰 관련 변수 (Review Variables)
+   ========================================= */
+:root {
+    --star: #FACC15;       /* 별 색상 */
+    --brand: #54C1FF;      /* 브랜드 컬러 */
+    --line: #000000;       /* 검은 테두리 */
+    --ink: #000000;        /* 텍스트 색상 */
+    --ink-2: #333333;      /* 보조 텍스트 */
+    --rec-size: 48px;      /* 추천 아이콘 크기 */
+    
+    /* 팝 아트 컬러 */
+    --accent-green: #00E054;
+    --accent-red: #FF4D4D;
+    --shadow-hard: 4px 4px 0px 0px #000000;
 }
 
-/* =====================*/
-/* Reviews (작성 영역)  */
-/* =====================*/
-.reviews-section{
-  background:#fff;
-  border-radius:16px;
-  padding:32px;
-  margin:24px auto;
-  max-width:1150px;
-  box-shadow:0 24px 24px rgba(0,0,0,.06);
+/* =========================================
+   2. 리뷰 작성 영역 (Composer)
+   ========================================= */
+.reviews-section {
+    max-width: 1200px;
+    background: #fff;
+    border: 3px solid var(--line);
+    padding: 32px;
+    margin: 40px auto;
+    box-shadow: var(--shadow-hard);
+    border-radius: 0;
 }
 
-/* 작성 폼: 좌=별점, 우=추천, 아래=텍스트/버튼 */
-.review-composer{
-  display:grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    "stars recommend"
-    "text  text"
-    "actions actions";
-  gap:12px;
-  background:#f1efef;
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:16px;
+.reviews-section h2 {
+    font-size: 28px;
+    font-weight: 900;
+    border-bottom: 4px solid var(--line);
+    display: inline-block;
+    margin-bottom: 24px;
+    margin-top: 0;
 }
-.review-composer .row{ display:flex; align-items:center; gap:10px; }
 
-.stars-row{ grid-area: stars; }
-.recommend-row{ grid-area: recommend; justify-self:end; }
+/* 작성 폼 그리드 */
+.review-composer {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        "stars recommend"
+        "text text"
+        "actions actions";
+    gap: 16px;
+    background: #F4F4F4;
+    border: 2px solid var(--line);
+    padding: 24px;
+}
 
-/* 별점 */
-.rating{
-  display:inline-flex;
-  flex-direction:row-reverse;
-  gap:6px;
+.review-composer .row { display: flex; align-items: center; gap: 10px; }
+.stars-row { grid-area: stars; }
+.recommend-row { grid-area: recommend; justify-self: end; }
+
+/* 별점 스타일 */
+.rating { display: inline-flex; flex-direction: row-reverse; gap: 4px; }
+.rating input { display: none; }
+.rating label {
+    font-size: 32px; line-height: 1; color: #ccc; cursor: pointer;
+    text-shadow: 1px 1px 0 #000; transition: transform 0.1s;
 }
-.rating input{ display:none; }
-.rating label{
-  font-size:28px; line-height:1;
-  color:#9fb8d6;
-  cursor:pointer; user-select:none;
-}
-.rating label::before{ content:"★"; }
+.rating label::before { content: "★"; }
 .rating input:checked ~ label,
 .rating label:hover,
-.rating label:hover ~ label{ color:#f59e0b; }
-
-/* 추천/비추천 */
-.recommend{ display:inline-flex; gap:8px; align-items:center; }
-.recommend input[type="radio"]{ position:absolute; opacity:0; width:0; height:0; }
-.recommend .chip{
-  padding:8px 14px; border:1px solid #e5e7eb; border-radius:9999px;
-  background:#fff; color:#374151; font-size:14px; line-height:1;
-  cursor:pointer; user-select:none; transition:all .15s ease;
-}
-.recommend .chip:hover{ border-color:#cbd5e1; background:#f8fafc; }
-.recommend input[type="radio"]:checked + label{
-  border-color:var(--brand);
-  background:rgba(14,165,233,.10);
-  color:var(--brand);
-  box-shadow:0 0 0 2px rgba(14,165,233,.10) inset;
-}
-.recommend .chip.yes::before{ content:"👍 "; }
-.recommend .chip.no::before { content:"👎 "; }
-
-/* 텍스트박스 */
-.review-composer textarea{
-  grid-area:text;
-  width:100%; max-width:100%; min-height:160px;
-  padding:12px 14px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  outline:none; resize:vertical;
-  font:inherit; color:var(--ink); background:#e2ebf1;
-  box-sizing:border-box;
-}
-.review-composer textarea:focus{
-  border-color:#93c5fd;
-  box-shadow:0 0 0 3px rgba(59,130,246,.15);
+.rating label:hover ~ label {
+    color: var(--star); text-shadow: 2px 2px 0 #000; transform: scale(1.1);
 }
 
-/* 버튼 행 */
-.review-actions{
-  grid-area:actions;
-  display:flex; gap:10px; justify-content:flex-end;
+/* 추천/비추천 버튼 */
+.recommend { display: inline-flex; gap: 12px; align-items: center; }
+.recommend input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.recommend .chip {
+    padding: 10px 20px; border: 2px solid var(--line); background: #fff;
+    color: var(--ink); font-size: 14px; font-weight: 700; cursor: pointer;
+    user-select: none; border-radius: 0; box-shadow: 3px 3px 0 var(--line);
+    transition: all 0.1s;
 }
-.btn{
-  height:40px; padding:0 14px; border-radius:10px;
-  border:1px solid var(--line); background:#b4f0f8; color:var(--ink);
-  font-weight:700; cursor:pointer; font-size:110%;
+.recommend .chip:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--line); }
+
+.recommend input[type="radio"]:checked + label.yes {
+    background: var(--accent-green); color: #000; transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--line);
 }
-.btn:hover{ background:#7ff598; }
-.review-actions .btn{
-  display:inline-flex; align-items:center; justify-content:center;
-  inline-size:110px; block-size:40px; padding:0 12px;
+.recommend input[type="radio"]:checked + label.no {
+    background: var(--accent-red); color: #fff; transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--line);
+}
+.recommend .chip.yes::before { content: "👍 "; }
+.recommend .chip.no::before { content: "👎 "; }
+
+/* 텍스트 입력창 */
+.review-composer textarea {
+    grid-area: text; width: 100%; min-height: 160px; padding: 16px;
+    border: 2px solid var(--line); border-radius: 0; outline: none;
+    resize: vertical; font: inherit; background: #fff;
+    box-shadow: 3px 3px 0 rgba(0,0,0,0.1) inset;
+}
+.review-composer textarea:focus { background: #FFFFF0; border-color: var(--brand); }
+
+/* 버튼 영역 */
+.review-actions { grid-area: actions; display: flex; gap: 12px; justify-content: flex-end; }
+.btn {
+    height: 44px; padding: 0 20px; border: 2px solid var(--line);
+    background: #fff; color: var(--ink); font-weight: 800;
+    cursor: pointer; font-size: 16px; border-radius: 0;
+    box-shadow: 4px 4px 0 var(--line); transition: all 0.1s; text-transform: uppercase;
+}
+.btn:hover { background: var(--brand); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--line); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--line); }
+input[type="submit"].btn { background: #FF90E8; } /* 제출 버튼 핑크 */
+
+@media (max-width: 600px) {
+    .review-composer { grid-template-columns: 1fr; grid-template-areas: "stars" "recommend" "text" "actions"; }
+    .recommend-row { justify-self: start; }
 }
 
-/* 좁은 화면에서 위→아래 정렬 */
-@media (max-width:560px){
-  .review-composer{
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "stars"
-      "recommend"
-      "text"
-      "actions";
-  }
-  .recommend-row{ justify-self:start; }
+/* =========================================
+   3. 리뷰 리스트 영역 (Review List)
+   ========================================= */
+.reviews-view {
+    max-width: 1200px; background: #fff; border: 3px solid var(--line);
+    padding: 24px; margin: 32px auto; box-shadow: var(--shadow-hard); border-radius: 0;
 }
 
-/* =====================*/
-/* Reviews List (열람)  */
-/* =====================*/
-.reviews-view{
-  background:#fff;
-  border-radius:16px;
-  padding:24px;
-  margin:16px auto 24px;
-  max-width:1150px;
-  box-shadow:0 6px 18px rgba(0,0,0,.06);
+.reviews-toolbar {
+    display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px;
+    border-bottom: 2px solid var(--line); padding-bottom: 16px;
 }
 
-.reviews-toolbar{
-  display:flex; justify-content:flex-end; gap:8px; margin-bottom:10px;
+.sort-btn {
+    height: 36px; padding: 0 16px; border: 2px solid var(--line);
+    background: #fff; font-weight: 700; cursor: pointer; border-radius: 0;
+    box-shadow: 3px 3px 0 var(--line);
 }
-.sort-btn{
-  height:34px; padding:0 12px; border-radius:10px;
-  border:1px solid var(--line); background:#94a8bd; color:#fff;
-  font-weight:700; cursor:pointer;
+.sort-btn.active {
+    background: #000; color: #fff; box-shadow: 1px 1px 0 var(--line);
+    transform: translate(2px, 2px);
 }
-.sort-btn.active{ filter:brightness(.95); }
 
-.review-list{ display:grid; gap:12px; }
+.review-list { display: grid; gap: 16px; }
 
-/* 3열: 아바타 / 본문 / 우측아이콘+별 */
-.review-card{
-  display:grid;
-  grid-template-columns: 56px 1fr 130px;
-  align-items:start;
-  gap:14px;
-  padding:14px 16px;
-  background:#fff;
-  border:1px solid var(--line);
-  border-radius:12px;
+/* 리뷰 카드 */
+.review-card {
+    display: grid; grid-template-columns: 60px 1fr 140px; align-items: start;
+    gap: 16px; padding: 20px; background: #fff; border: 2px solid var(--line);
+    box-shadow: 4px 4px 0 #ddd; border-radius: 0;
 }
 
 /* 아바타 */
-.review-card .avatar{
-  width:56px; height:56px; border-radius:9999px; overflow:hidden;
-  background:#e2e8f0; display:grid; place-items:center;
+.review-card .avatar {
+    width: 60px; height: 60px; border: 2px solid var(--line);
+    background: var(--brand); overflow: hidden;
 }
-.review-card .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+.review-card .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-/* 본문 영역 */
-.review-meta{ display:grid; gap:8px; }
-.review-headline{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-.review-user{ font-weight:800; color:var(--ink); }
-.review-time{ color:var(--ink-2); font-size:13px; }
-.review-content{ color:var(--ink); }
+/* 리뷰 내용 */
+.review-meta { display: grid; gap: 8px; }
+.review-headline { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.review-user { font-weight: 900; font-size: 18px; color: var(--ink); }
+.review-time { 
+    color: var(--ink-2); font-size: 12px; font-family: monospace;
+    background: #eee; padding: 2px 6px; border: 1px solid #ccc;
+}
+.review-content { color: var(--ink); line-height: 1.5; font-weight: 500; }
 
-/* 하단: 추천/비추천 버튼 */
-.review-actions-row{
-  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-  color:var(--ink-2); font-size:14px;
+/* 하단 액션 (투표) */
+.review-actions-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.vote-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+    border: 2px solid var(--line); background: #fff; font-weight: 700;
+    cursor: pointer; border-radius: 0; box-shadow: 2px 2px 0 var(--line); transition: all 0.1s;
 }
-.vote-btn{
-  display:inline-flex; align-items:center; gap:6px; cursor:pointer;
-  padding:6px 10px; border:1px solid var(--line); border-radius:10px;
-  background:#fff; font-weight:600;
+.vote-btn:hover { background: #f0f0f0; transform: translate(-1px, -1px); }
+.vote-btn.active {
+    background: var(--brand) !important; color: #000 !important;
+    border-color: #000 !important; box-shadow: 1px 1px 0 #000 inset !important;
+    transform: translate(1px, 1px);
 }
-.vote-btn:hover{ background:#f8fafc; }
-.vote-btn .count{ min-width:1.5em; text-align:center; }
+.vote-btn.dislike.active { background: var(--accent-red) !important; color: #fff !important; }
 
-/* 우측: 추천 아이콘 + 별점 */
-.review-side{
-  display:grid; gap:8px; justify-items:center; align-content:center;
-  min-width:110px;
+/* 우측 추천 정보 */
+.review-side {
+    display: grid; gap: 8px; justify-items: center; align-content: center;
+    border-left: 2px dashed #ccc; padding-left: 10px;
 }
-.rec-icon{
-  width:var(--rec-size); height:var(--rec-size);
-  border-radius:9999px; display:grid; place-items:center;
-  font-size:20px; user-select:none; border:1px solid var(--line);
+.rec-icon {
+    width: var(--rec-size); height: var(--rec-size); display: grid; place-items: center;
+    font-size: 24px; border: 2px solid var(--line); background: #fff;
 }
-.rec-yes{ background:rgba(16,185,129,.12); color:#10b981; }
-.rec-no { background:rgba(239,68,68,.12);  color:#ef4444; }
+.rec-yes { background: var(--accent-green); color: #000; }
+.rec-no { background: var(--accent-red); color: #fff; }
 
-.side-stars{ display:flex; gap:4px; font-size:18px; line-height:1; }
-.side-stars .on{ color:var(--star); }
-.side-stars .off{ color:#9fb8d6; }
+.side-stars { display: flex; gap: 2px; font-size: 20px; line-height: 1; }
+.side-stars .on { color: var(--star); text-shadow: 1px 1px 0 #000; }
+.side-stars .off { color: #ccc; }
 
-/* 더보기 */
-.loadmore-btn{
-  display:block; margin:8px auto 0; height:40px; padding:0 16px;
-  border-radius:10px; border:1px solid var(--line); background:#fff; font-weight:700; cursor:pointer;
+/* 대댓글 (Replies) */
+.replies {
+    display: grid; gap: 10px; padding: 12px; margin-top: 10px;
+    background: #fafafa; border-left: 4px solid var(--line);
 }
-.loadmore-btn:hover{ background:#f8fafc; }
+.reply-card {
+    display: grid; grid-template-columns: 40px 1fr auto; gap: 10px;
+    align-items: start; padding: 12px; border: 2px solid var(--line);
+    background: #fff; border-radius: 0; box-shadow: 2px 2px 0 #ccc;
+}
+.reply-card .avatar { width: 40px; height: 40px; border: 2px solid var(--line); }
 
-/* 반응형: 우측 열 아래로 */
-@media (max-width:720px){
-  .review-card{ grid-template-columns:48px 1fr; }
-  .review-side{ grid-column:1 / -1; justify-items:flex-start; align-content:start; }
+/* 대댓글 입력 */
+.replies .reply-form { border: 2px solid var(--line); background: #fff; padding: 12px; }
+.replies .reply-form textarea { border: 2px solid var(--line); background: #f8fafc; }
+.replies .reply-send {
+    height: 40px; padding: 0 16px; border: 2px solid var(--line);
+    background: var(--brand); font-weight: 700; cursor: pointer;
+    box-shadow: 2px 2px 0 var(--line);
 }
+.replies .reply-send:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--line); }
 
-/* 禁用/高亮（通用） */
-.vote-btn[disabled], .vote-btn.disabled {
-  opacity: .5;
-  cursor: not-allowed;
-  pointer-events: none;
+/* 더보기 버튼 */
+.loadmore-btn {
+    display: block; width: 100%; height: 50px; margin-top: 20px;
+    border: 2px solid var(--line); background: #fff; font-weight: 900;
+    font-size: 18px; cursor: pointer; box-shadow: 4px 4px 0 var(--line); border-radius: 0;
 }
-/* ——更强覆盖的已投票高亮—— */
-.vote-btn.active{
-  border-color: var(--brand) !important;
-  background: rgba(14,165,233,.10) !important;
-  color: var(--brand) !important;
-  box-shadow: 0 0 0 2px rgba(14,165,233,.10) inset !important;
-}
-.vote-btn.dislike.active{
-  border-color: #ef4444 !important;
-  background: rgba(239,68,68,.10) !important;
-  color: #ef4444 !important;
-  box-shadow: 0 0 0 2px rgba(239,68,68,.10) inset !important;
-}
+.loadmore-btn:hover { background: var(--brand); box-shadow: 6px 6px 0 var(--line); transform: translate(-2px, -2px); }
 
-/* =====================*/
-/* Replies (回帖样式)   */
-/* =====================*/
-
-/* 父评论下的回帖容器 */
-.replies{
-  display: grid;
-  gap: 10px;
-  padding: 8px 0 4px 0;
-}
-
-/* ——扁平化回帖卡片——
-   头像 / 主体 / 右上投票（小按钮）
-*/
-.reply-card{
-  display: grid;
-  grid-template-columns: 40px 1fr auto;   /* 更扁平：头像更小，右侧为投票 */
-  gap: 8px;
-  align-items: start;
-  padding: 8px 10px;                       /* 减小内边距，更扁平 */
-  border: 1px solid var(--line);
-  border-radius: 10px;                      /* 更小的圆角 */
-  background: #fff;
-}
-
-/* 回帖头像更小 */
-.reply-card .avatar{
-  width:40px; height:40px;
-  border-radius:9999px; overflow:hidden;
-  background:#e2e8f0; display:grid; place-items:center;
-}
-.reply-card .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
-
-/* 回帖主体更紧凑 */
-.reply-main{ display:grid; gap:4px; }
-.reply-user{ font-weight:800; color:var(--ink); }
-.reply-content{
-  color:var(--ink);
-  margin: 0;                 /* 去掉潜在 margin 让整体更紧凑 */
-  line-height: 1.35;         /* 更扁平的行高 */
-}
-.reply-time{ color:var(--ink-2); font-size:12px; }
-
-/* 右上角小号投票按钮，更扁平 */
-.reply-actions-top{
-  display:flex; gap:6px;
-  justify-self:end; align-self:start;
-}
-.vote-btn.small{
-  height:28px; padding:0 8px;               /* 更矮更窄 */
-  font-size:12px; line-height:28px;
-  border-radius:8px;
-}
-
-/* 保险：回帖不显示右侧推荐图标与星级（即使模板误带也隐藏） */
-.reply-card .review-side{ display: none !important; }
-/* === 回帖编辑框：做成扁平长方形，宽度占满，和回帖卡片尺寸接近 === */
-.replies .reply-form{
-  border: 1px solid var(--line);
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px;
-}
-
-.replies .reply-form-row{
-  display: grid;
-  grid-template-columns: 1fr auto; /* 左：textarea 右：发送按钮 */
-  gap: 10px;
-  align-items: start;
-}
-
-.replies .reply-form textarea{
-  width: 100%;
-  min-height: 72px;            /* ← 想更高就调这个数，例如 88/96 */
-  max-height: 240px;
-  resize: vertical;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #f8fafc;
-  color: var(--ink);
-  font: inherit;
-  outline: none;
-}
-.replies .reply-form textarea:focus{
-  border-color:#93c5fd;
-  box-shadow:0 0 0 3px rgba(59,130,246,.15);
-}
-
-/* 发送按钮（继承 .btn 的风格，保证高度对齐） */
-.replies .reply-send{
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: #b4f0f8;
-  font-weight: 700;
-  cursor: pointer;
-}
-.replies .reply-send:hover{ background:#7ff598; }
-
-/* 小屏适配：按钮换行到下面也能贴边 */
-@media (max-width: 560px){
-  .replies .reply-form-row{
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-}
+/* 유틸리티 */
 .hidden { display: none !important; }
-.replies[hidden] {
-  display: none !important;
-}
-.side-stars span{
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-}
-
-.side-stars .off{  /* 你的现有命名 */
-  color: #9fb8d6 !important;
-}
-.side-stars .on{
-  color: var(--star) !important;
-}

@@ -1,55 +1,62 @@
-/* ========== 主题变量（含画廊尺寸） ========== */
+/* =========================================
+   1. 핵심 변수 및 기본 설정 (Core Variables)
+   ========================================= */
 :root {
+    /* --- 팝 아트 컬러 팔레트 --- */
+    --bg-color: #FFDE59;       /* 배경: 쨍한 노란색 */
+    --card-bg: #FFFFFF;        /* 카드 배경: 흰색 */
+    --ink: #000000;            /* 텍스트: 완전 검정 */
+    --ink-2: #333333;          /* 보조 텍스트 */
+    --brand: #54C1FF;          /* 포인트: 시안 블루 */
+    --accent-pink: #FF90E8;    /* 강조: 핑크 */
+    --line: #000000;           /* 테두리 색상 */
+    
+    /* --- 레이아웃 설정 --- */
     --nav-h: 64px;
-    --bg: #fff;
-    --ink: #111827;
-    --ink-2: #475569;
-    --brand: #0ea5e9;
-    --line: #e5e7eb;
-    --radius: 12px;
+    --border-w: 3px;           /* 굵은 테두리 */
+    --shadow-hard: 4px 4px 0px 0px #000000; /* 딱딱한 그림자 */
+    --radius: 0px;             /* 각진 모서리 */
+    
+    /* --- 상단 갤러리 설정 --- */
     --center-w: clamp(320px, 45vw, 560px);
-    /* 顶部画廊中间图宽度（随屏宽） */
     --center-h: 360px;
-    /* 顶部画廊固定高度 */
-    --side-ratio: .5;
-    /* 侧图可见宽度 = 中图 * 该比例（0.5=半张） */
+    --side-ratio: 0.5;
     --gap: 8px;
-    /* 图与图之间间距 */
     --edge-pad: clamp(14px, 2vw, 24px);
-    /* 画廊左右统一内边距（余白） */
+    --side-w: calc(var(--center-w) * var(--side-ratio));
 }
 
-/* ========== 全局基础 ========== */
-* {
-    box-sizing: border-box
-}
-
-html,
-body {
-    margin: 0
-}
+* { box-sizing: border-box; }
 
 body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-    background: #f8fafc;
+    margin: 0;
+    font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-color);
     color: var(--ink);
+    /* 도트 패턴 배경 */
+    background-image: radial-gradient(#000 1px, transparent 1px);
+    background-size: 20px 20px;
 }
 
 main {
     max-width: 1200px;
-    margin: 70px auto 24px;
-    padding: 0 16px
+    margin: 80px auto 40px; /* 헤더 공간 확보 */
+    padding: 0 16px;
 }
 
-/* ========== 顶栏 ========== */
-header {
-    position: sticky;
+/* =========================================
+   2. 헤더 및 네비게이션 (Header) - 공통 스타일과 일치
+   ========================================= */
+header, .fixed-header {
+    position: sticky; /* fixed 대신 sticky 사용 권장 (레이아웃 겹침 방지) */
     top: 0;
     z-index: 1000;
     height: var(--nav-h);
-    background: var(--bg);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
-    background: #7deced;
+    background: #fff;
+    border-bottom: var(--border-w) solid var(--line);
+    box-shadow: 0 2px 0 #000;
+    width: 100%;
+    padding: 0;
 }
 
 .nav {
@@ -57,480 +64,242 @@ header {
     height: 100%;
     margin: 0 auto;
     padding: 0 16px;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 16px;
-    align-items: center;
-}
-
-.brand {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    white-space: nowrap
 }
 
+/* 브랜드 로고 */
+.brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .brand .logo {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    display: grid;
-    place-items: center;
-    background: #e2f2ff;
-    color: #0ea5e9;
-    font-weight: 700;
+    width: 32px; height: 32px;
+    border: 2px solid #000;
+    display: grid; place-items: center;
+    background: var(--brand);
+    color: #000; font-weight: 900;
 }
+.brand-name { font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; }
 
-.brand-name {
-    font-weight: 800;
-    letter-spacing: .2px
+/* 네비게이션 링크 */
+.nav-links { display: flex; gap: 18px; margin-left: 16px; white-space: nowrap; }
+.nav-links a { 
+    color: var(--ink); font-weight: 700; text-decoration: none; padding: 4px 8px;
+    border: 2px solid transparent; transition: transform 0.1s;
 }
-
-.nav-links {
-    display: flex;
-    gap: 18px;
-    margin-left: 16px;
-    white-space: nowrap
-}
-
-.nav-links a {
-    color: var(--ink-2);
-    text-decoration: none;
-    font-weight: 600
-}
-
 .nav-links a:hover {
-    color: var(--ink)
+    background: #000; color: #fff; transform: rotate(-2deg);
 }
 
-.search {
-    display: flex;
-    justify-content: center
-}
-
-.search-field {
-    width: min(56vw, 560px);
-    position: relative
-}
-
+/* 검색창 */
+.search { flex: 1; display: flex; justify-content: center; }
+.search-field { width: min(56vw, 560px); position: relative; }
 .search-field input {
-    width: 100%;
-    height: 40px;
-    padding: 0 14px 0 36px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    outline: none;
-    background: #fff;
-    font-size: 14px;
+    width: 100%; height: 40px; padding: 0 14px 0 40px;
+    border: 2px solid #000; border-radius: 0; outline: none; background: #fff;
+    font-weight: 600; box-shadow: 3px 3px 0 #000; transition: all 0.1s;
+}
+.search-field input:focus { background: #fffff0; transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+.search-field .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; opacity: 1; fill: #000; }
+
+/* 유저 액션 */
+.actions { display: flex; gap: 10px; align-items: center; position: relative; }
+.link { color: var(--ink); text-decoration: none; font-weight: 700; }
+.link:hover { text-decoration: underline; }
+#user_profile {
+    width: 36px; height: 36px; border: 2px solid #000; background: #eee;
+    object-fit: cover; cursor: pointer; box-shadow: 2px 2px 0 #000;
 }
 
-.search-field input:focus {
-    border-color: #93c5fd;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, .15)
+/* 드롭다운 메뉴 */
+.menu {
+    position: absolute; right: 0; top: calc(100% + 10px);
+    width: 140px; background: #fff; border: 2px solid #000;
+    box-shadow: 4px 4px 0 #000; border-radius: 0;
+    overflow: hidden; max-height: 0; opacity: 0; transition: all 0.2s; z-index: 2000;
 }
+.menu.open { max-height: 400px; opacity: 1; padding: 0; }
+.menu ul { list-style: none; margin: 0; padding: 0; }
+.menu li { padding: 12px 16px; cursor: pointer; border-bottom: 2px solid #000; font-weight: 700; }
+.menu li:last-child { border-bottom: none; }
+.menu li:hover { background: var(--brand); color: #fff; }
 
-.search-field .icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    opacity: .6
-}
-
-.actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    position: relative
-}
-
-.link {
-    color: var(--ink-2);
-    text-decoration: none;
-    font-weight: 600
-}
-
-.link:hover {
-    color: var(--ink);
-    text-decoration: underline
-}
-
-@media (max-width:900px) {
-    .nav-links {
-        display: none
-    }
-
-    .search-field {
-        width: min(70vw, 520px)
-    }
-}
-
-@media (max-width:480px) {
-
-    .brand-name,
-    .actions .link {
-        display: none
-    }
-
-    .search-field {
-        width: 100%
-    }
-}
-
-/* ========== 顶部画廊（中间一张 + 两侧半张） ========== */
-:root {
-    --side-w: calc(var(--center-w) * var(--side-ratio));
-}
-
+/* =========================================
+   3. 상단 갤러리 (Hero Gallery)
+   ========================================= */
 .cardbox {
     position: relative;
     width: min(96vw, calc(var(--center-w) + 2*var(--side-w) + 2*var(--gap) + 2*var(--edge-pad)));
-    padding-block: 16px;
+    padding-block: 20px;
     padding-inline: 0;
-    margin: 20px auto;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    margin: 40px auto;
+    border: var(--border-w) solid #000;
     background: #fff;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, .06);
+    box-shadow: var(--shadow-hard);
+    border-radius: 0;
 }
 
 .gallery {
-    position: relative; /* 좌우 이미지를 absolute로 위치시키기 위해 */
-    width: 100%;
-    height: var(--center-h);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    position: relative;
+    width: 100%; height: var(--center-h);
+    display: flex; justify-content: center; align-items: center;
     gap: var(--gap);
 }
 
 .gallery > figure {
-    margin: 0;
-    height: var(--center-h);
-    border-radius: 12px;
+    margin: 0; height: var(--center-h);
+    border: 2px solid #000;
     overflow: hidden;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, .12);
-    background: #ddd;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+    background: #ddd; border-radius: 0;
 }
 
-.center {
-    width: var(--center-w);
-    height: var(--center-h);
-    z-index: 2; /* 중앙 이미지가 위로 오도록 */
-    position: relative; /* 필요 시 z-index 적용용 */
+/* 중앙 이미지 */
+.center { width: var(--center-w); height: var(--center-h); z-index: 2; position: relative; }
+.center img { width: 100%; height: 100%; object-fit: cover; }
+
+/* 캡션 박스 (갤러리 내부) */
+.caption-box {
+    position: absolute; left: 0; bottom: 0;
+    background: var(--brand); /* 파란색 배경 */
+    padding: 8px 12px;
+    border-top: 2px solid #000; border-right: 2px solid #000;
+    z-index: 3;
+}
+.caption {
+    color: #000; font-size: 1.2rem; font-weight: 900;
+    text-transform: uppercase; text-shadow: none; letter-spacing: -0.5px;
 }
 
-.center img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
+/* 측면 이미지 */
 .side {
-    width: var(--side-w); /* 중앙의 절반 */
-    height: var(--center-h);
-    overflow: hidden;
-    position: absolute; /* center 기준으로 위치 조정 */
-    top: 0;
+    width: var(--side-w); height: var(--center-h);
+    overflow: hidden; position: absolute; top: 0;
+    filter: grayscale(100%); /* 측면 이미지는 흑백 처리 */
+    transition: filter 0.3s;
 }
+.side:hover { filter: grayscale(0%); }
 
-.side.left {
-    left: 0; /* 좌측 */
-    z-index: 1;
-}
+.side.left { left: 0; z-index: 1; }
+.side.left img { width: 200%; height: 100%; object-fit: cover; transform: translateX(-50%); }
 
-.side.left img {
-    width: 200%; /* 원본 중앙 크기 */
-    height: 100%;
-    object-fit: cover;
-    transform: translateX(-50%);
-}
+.side.right { right: 0; z-index: 1; }
+.side.right img { width: 200%; height: 100%; object-fit: cover; }
 
-.side.right {
-    right: 0; /* 우측 */
-    z-index: 1;
-}
-
-.side.right img {
-    width: 200%; /* 원본 중앙 크기 */
-    height: 100%;
-    object-fit: cover;
-}
+/* 갤러리 네비게이션 버튼 */
 .nav-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    border: 1px solid rgba(0, 0, 0, .12);
-    background: rgba(255, 255, 255, .95);
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-    user-select: none;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
-    z-index: 2;
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 48px; height: 48px;
+    border: 2px solid #000; background: #fff;
+    display: grid; place-items: center; cursor: pointer;
+    box-shadow: 4px 4px 0 #000; z-index: 10;
+    font-weight: 900; font-size: 20px;
 }
+.nav-btn:hover { background: var(--brand); transform: translateY(-50%) translate(-2px, -2px); box-shadow: 6px 6px 0 #000; }
+.nav-btn:active { transform: translateY(-50%) translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+.nav-btn.left { left: calc(var(--edge-pad) - 20px); }
+.nav-btn.right { right: calc(var(--edge-pad) - 20px); }
 
-.nav-btn.left {
-    left: calc(var(--edge-pad) - 4px)
-}
-
-.nav-btn.right {
-    right: calc(var(--edge-pad) - 4px)
-}
-
-.nav-btn:active {
-    transform: translateY(calc(-50% + 1px))
-}
-
-.nav-btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, .25)
-}
-
-@media (max-width:680px) {
-    .gallery {
-        grid-template-columns: var(--center-w);
-        padding-inline: var(--edge-pad)
-    }
-
-    .side,
-    .nav-btn {
-        display: none
-    }
-}
-
-/* ========== 通用板块标题 ========== */
-.section {
-    margin: 28px 0
-}
-
+/* =========================================
+   4. 섹션 공통 스타일
+   ========================================= */
+.section { margin: 40px 0; }
 .section h2 {
-    margin: 0 0 14px;
-    font-size: 20px
+    margin: 0 0 20px; font-size: 24px; font-weight: 900;
+    background: #000; color: #fff; display: inline-block; padding: 6px 12px;
+    transform: rotate(-1deg); box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
 }
 
-/* ========== 游戏卡片网格（复用） ========== */
+/* =========================================
+   5. 게임 카드 그리드 (Game Cards)
+   ========================================= */
 .game-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: 24px
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
 }
 
 .game-card {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, .06)
+    background: #fff; border: 2px solid #000;
+    border-radius: 0; overflow: hidden;
+    box-shadow: 4px 4px 0 #000;
+    transition: transform 0.1s;
+    position: relative;
+}
+
+.game-card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 8px 8px 0 #000;
+    background: #FFFFF0;
 }
 
 .game-cover {
-    aspect-ratio: 16/9;
-    width: 100%;
-    object-fit: cover;
-    display: block
+    aspect-ratio: 16/9; width: 100%; object-fit: cover;
+    display: block; border-bottom: 2px solid #000;
 }
 
-.game-meta {
-    padding: 10px 12px;
-    display: grid;
-    gap: 6px
-}
+.game-meta { padding: 16px; display: grid; gap: 8px; }
 
 .game-title {
-    font-weight: 700
+    font-weight: 900; font-size: 18px; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.badges {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap
-}
-
+/* 배지 (장르 등) */
+.badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
 .badge {
-    font-size: 12px;
-    padding: 2px 6px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: #f8fafc
+    font-size: 11px; padding: 2px 6px; border-radius: 0;
+    border: 1px solid #000; background: #fff; font-weight: 700;
 }
 
-.price {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    font-weight: 700
-}
-
-.rate {
-  display: flex;
-  right: 0;
-  bottom: 0;
-  gap: 8px;
-  align-items: center;
-  font-weight: 700;
-  margin-left: auto; /* 남는 공간을 왼쪽으로 밀기 */
-  font-size: 1.2rem;
-}
-.stars {
-  display: flex;
-  gap: 4px;
-}
-
-.star {
-  font-size: 1.5rem;
-  color: slategray; /* 기본 빈 별 색 */
-  position: relative;
-  display: inline-block;
-}
-
-.star.full {
-  color: gold; /* 채운 별 */
-}
-
-.star.half {
-  color: slategray; /* 기본 회색 */
-}
-
-.star.half::before {
-  content: "★";
-  color: gold;
-  position: absolute;
-  overflow: hidden;
-  width: 50%; /* 절반만 색칠 */
-  top: 0;
-  left: 0;
-}
-
-/* 这里也用来放“发售日/D-n” */
+/* 가격 및 평점 */
+.price { display: flex; gap: 8px; align-items: center; font-weight: 800; font-size: 18px; }
 .off {
-    background: #84cc16;
-    color: #0b1b05;
-    padding: 2px 6px;
-    border-radius: 6px;
-    font-weight: 800
+    background: var(--brand); color: #000; padding: 2px 6px;
+    border: 1px solid #000; font-size: 14px;
 }
+.old { color: #888; text-decoration: line-through; font-size: 14px; }
 
-.old {
-    color: #94a3b8;
-    text-decoration: line-through
+/* 별점 */
+.rate {
+    display: flex; align-items: center; gap: 4px; font-weight: 800;
+    margin-left: auto; font-size: 14px;
+    background: #000; color: #FFDE59; padding: 2px 6px;
 }
+.star { display: none; } /* 별 아이콘 대신 숫자로 깔끔하게 */
 
-/* 发售倒计时徽标 */
-.soon {
-    background: #fee2e2;
-    border-color: #fecaca;
-    color: #991b1b;
-    font-weight: 800
-}
-
-.eta {
-    color: #475569;
-    font-weight: 600
-}
-
-.chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px
-}
-
+/* 발매일 칩 */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .chip {
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: #fff;
-    font-size: 14px;
-    cursor: pointer
+    padding: 6px 12px; border-radius: 0; border: 2px solid #000;
+    background: #fff; font-size: 12px; font-weight: 700; cursor: pointer;
+    box-shadow: 2px 2px 0 #000;
 }
+.chip:hover { background: var(--accent-pink); }
+.chip.active { background: #000; color: #fff; }
 
-.chip:hover {
-    background: #f1f5f9
-}
-
+/* =========================================
+   6. 공지사항 및 기타
+   ========================================= */
 .announce {
-    background: linear-gradient(135deg, #e0f2fe, #f5f3ff);
-    border: 1px solid #dbeafe;
-    border-radius: 14px;
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px
+    background: #fff; border: 2px solid #000;
+    padding: 20px; display: flex; align-items: center; gap: 12px;
+    box-shadow: 4px 4px 0 #000; margin-bottom: 40px;
+    font-weight: 700;
+}
+.announce::before { content: "📢"; font-size: 24px; }
+
+/* 반응형 */
+@media (max-width: 900px) {
+    .nav-links { display: none; }
+    .search-field { width: 100%; margin: 0 10px; }
+    .gallery { grid-template-columns: var(--center-w); }
+    .side, .nav-btn { display: none; } /* 모바일에서 측면 이미지 숨김 */
 }
 
-
-/* 리스트 스타일 — 슬라이드 애니메이션을 위해 max-height 사용 */
-.menu {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 8px);
-    width: 110px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-    border-radius: 8px;
-    background: white;
-    overflow: hidden;
-    max-height: 0;
-    /* 닫힘 상태 */
-    transition: max-height 220ms ease, opacity 150ms ease;
-    opacity: 0;
-    padding: 0;
-    box-sizing: border-box;
-    z-index: 100;
-}
-
-.menu.open {
-    max-height: 400px;
-    /* 충분히 큰 값 (항목 수에 맞춰 조정) */
-    opacity: 1;
-    padding: 8px 0;
-}
-
-.menu ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.menu li {
-    padding: 10px 14px;
-    cursor: pointer;
-    user-select: none;
-}
-
-.menu li:hover,
-.menu li:focus {
-    background: #f2f4f7;
-}
-.fixed-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 70px; 
-  padding: 10px 20px;
-  z-index: 1000; /* 위에 표시되게 */
-}
-/* ✨ 캡션 박스 */
-.caption-box {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  background: rgba(0, 0, 0, 0.6); /* 반투명 검정 */
-  padding: 8px 14px;
-  border-radius: 8px;
-  backdrop-filter: blur(2px); /* 배경 살짝 블러 */
-  z-index: 2;
-}
-
-.caption {
-  color: #fff;
-  font-size: 1.2rem;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+@media (max-width: 480px) {
+    .brand-name { display: none; }
+    .actions .link { display: none; }
+    .cardbox { width: 100%; border: none; background: transparent; box-shadow: none; }
+    .gallery > figure { width: 100%; height: auto; aspect-ratio: 16/9; }
+    .caption-box { bottom: -40px; width: 100%; }
 }

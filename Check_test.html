@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Can You Run It? - 사양 체크 프로젝트</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+        h2 { text-align: center; color: #333; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        /* 검색창 스타일 */
+        .search-box { display: flex; gap: 5px; margin-bottom: 10px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        
+        /* 검색 결과 리스트 스타일 */
+        .result-list { border: 1px solid #eee; max-height: 150px; overflow-y: auto; background: #fff; border-radius: 5px; display: none; /* 처음엔 숨김 */ }
+        .result-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
+        .result-item:hover { background-color: #eef7ff; }
+        
+        /* 선택된 항목 스타일 */
+        .selected-text { margin-top: 10px; font-weight: bold; color: #28a745; }
+        
+        /* 결과 화면 스타일 */
+        .final-result { margin-top: 20px; padding: 15px; border: 2px dashed #ccc; text-align: center; border-radius: 8px; background: #fafafa; }
+        .pass { color: #28a745; font-weight: bold; font-size: 1.1em; }
+        .fail { color: #dc3545; font-weight: bold; font-size: 1.1em; }
+        .game-select { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+    <h2>🖥️ 내 컴퓨터 사양 체크</h2>
+
+    <div class="container">
+        <h3>1. CPU (프로세서)</h3>
+        <div class="search-box">
+            <input type="text" id="cpuInput" placeholder="예: 5600x, i5-12400">
+            <button onclick="searchPart('cpu')">검색</button>
+        </div>
+        <div id="cpuList" class="result-list"></div> <div id="cpuSelectedText" class="selected-text">선택된 부품 없음</div>
+        <input type="hidden" id="myCpuScore" value="0"> </div>
+
+    <div class="container">
+        <h3>2. GPU (그래픽카드)</h3>
+        <div class="search-box">
+            <input type="text" id="gpuInput" placeholder="예: RTX 3060, GTX 1060">
+            <button onclick="searchPart('gpu')">검색</button>
+        </div>
+        <div id="gpuList" class="result-list"></div> <div id="gpuSelectedText" class="selected-text">선택된 부품 없음</div>
+        <input type="hidden" id="myGpuScore" value="0"> </div>
+
+    <div class="container" style="background-color: #e8f4fd;">
+        <h3>3. 구동 여부 확인</h3>
+        
+        <select id="gameSelect" class="game-select">
+            <option value="578080">PUBG: 배틀그라운드</option>
+            </select>
+
+        <button onclick="checkCanRun()" style="width: 100%; background: #28a745;">결과 확인하기</button>
+        
+        <div id="finalResult" class="final-result">
+            부품을 선택하고 버튼을 눌러주세요.
+        </div>
+    </div>
+
+
+    <script>
+        // -----------------------------------------------------------
+        const SUPABASE_URL = 'https://qjusboguowpyamitokjh.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q'; 
+        // -----------------------------------------------------------
+
+        // [수정됨] 변수명 충돌 방지를 위해 '_supabase' 사용
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 1. 부품 검색 함수 (CPU/GPU 공통 사용)
+        async function searchPart(type) {
+            const inputId = type + 'Input';     // cpuInput 또는 gpuInput
+            const listId = type + 'List';       // cpuList 또는 gpuList
+            const tableName = type + '_tb';     // cpu_tb 또는 gpu_tb
+
+            const keyword = document.getElementById(inputId).value;
+            const listDiv = document.getElementById(listId);
+
+            if(!keyword) { alert("검색어를 입력하세요!"); return; }
+
+            listDiv.style.display = 'block';
+            listDiv.innerHTML = '<div class="result-item">검색 중...</div>';
+
+            // Supabase 검색 (대소문자 무시 ILIKE)
+            const { data, error } = await _supabase
+                .from(tableName)
+                .select('*')
+                .ilike('model_name', '%' + keyword + '%')
+                .order('score', { ascending: false })
+                .limit(10);
+
+            if (error) {
+                console.error("Supabase Error:", error);
+                alert('에러 발생! URL과 API Key를 확인하세요.');
+                return;
+            }
+
+            listDiv.innerHTML = ''; // 목록 초기화
+
+            if (!data || data.length === 0) {
+                listDiv.innerHTML = '<div class="result-item">검색 결과가 없습니다.</div>';
+                return;
+            }
+
+            // 검색 결과 리스트 생성
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.innerHTML = `<strong>${item.model_name}</strong> <br> <span style="font-size:0.8em; color:gray;">점수: ${item.score}</span>`;
+                
+                // 클릭 이벤트 (선택)
+                div.onclick = function() {
+                    selectPart(type, item.model_name, item.score);
+                };
+                listDiv.appendChild(div);
+            });
+        }
+
+        // 2. 부품 선택 함수
+        function selectPart(type, name, score) {
+            // 선택된 이름 표시
+            document.getElementById(type + 'SelectedText').innerText = `✅ 선택됨: ${name}`;
+            // 점수를 숨겨진 input에 저장
+            document.getElementById('my' + type.charAt(0).toUpperCase() + type.slice(1) + 'Score').value = score;
+            // 검색 목록 숨기기
+            document.getElementById(type + 'List').style.display = 'none';
+        }
+
+        // 3. 최종 비교 함수
+        async function checkCanRun() {
+            const myCpuScore = parseInt(document.getElementById('myCpuScore').value);
+            const myGpuScore = parseInt(document.getElementById('myGpuScore').value);
+            const gameId = document.getElementById('gameSelect').value;
+            const resultDiv = document.getElementById('finalResult');
+
+            // 부품 선택 여부 체크
+            if (myCpuScore === 0 || myGpuScore === 0) {
+                alert("먼저 CPU와 그래픽카드를 검색해서 선택해주세요!");
+                return;
+            }
+
+            resultDiv.innerHTML = "게임 데이터 분석 중...";
+
+            // 선택한 게임의 점수 데이터 가져오기
+            const { data, error } = await _supabase
+                .from('game_score_tb')
+                .select('*')
+                .eq('steam_app_id', gameId)
+                .single();
+
+            if (error || !data) {
+                console.error(error);
+                resultDiv.innerHTML = "<span class='fail'>게임 점수 데이터를 불러오지 못했습니다. (DB에 해당 게임 ID가 없습니다)</span>";
+                return;
+            }
+
+            // 점수 비교 로직
+            let cpuStatus = (myCpuScore >= data.min_cpu_score) ? 
+                            `<span class="pass">합격</span>` : `<span class="fail">불합격</span>`;
+            
+            let gpuStatus = (myGpuScore >= data.min_gpu_score) ? 
+                            `<span class="pass">합격</span>` : `<span class="fail">불합격</span>`;
+
+            let finalVerdict = "";
+            if (myCpuScore >= data.min_cpu_score && myGpuScore >= data.min_gpu_score) {
+                finalVerdict = `<h3 class="pass" style="margin-top:15px;">🎉 플레이 가능! (최소사양 충족)</h3>`;
+            } else {
+                finalVerdict = `<h3 class="fail" style="margin-top:15px;">😢 구동 불가 (사양 부족)</h3>`;
+            }
+
+            // 결과 HTML 조립
+            resultDiv.innerHTML = `
+                <h4>[ 분석 결과 ]</h4>
+                <p><strong>CPU:</strong> ${cpuStatus} (내 점수: ${myCpuScore} / 필요: ${data.min_cpu_score})</p>
+                <p><strong>GPU:</strong> ${gpuStatus} (내 점수: ${myGpuScore} / 필요: ${data.min_gpu_score})</p>
+                ${finalVerdict}
+            `;
+        }
+    </script>
+</body>
+</html>

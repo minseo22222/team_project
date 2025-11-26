@@ -50,7 +50,177 @@
   
   <script type="module" src="./scripts/game.js"></script>
 
+  <section class="spec-check-section">
+    <h2>🖥️ 내 컴퓨터로 실행 가능할까?</h2>
+    
+    <div class="spec-container">
+      <div class="spec-item">
+        <h3>1. CPU (프로세서)</h3>
+        <div class="search-box">
+          <input type="text" id="cpuInput" placeholder="예: 5600x, i5-12400">
+          <button onclick="searchPart('cpu')" class="spec-btn">검색</button>
+        </div>
+        <div id="cpuList" class="result-list"></div>
+        <div id="cpuSelectedText" class="selected-text">선택된 부품 없음</div>
+        <input type="hidden" id="myCpuScore" value="0">
+      </div>
+
+      <div class="spec-item">
+        <h3>2. GPU (그래픽카드)</h3>
+        <div class="search-box">
+          <input type="text" id="gpuInput" placeholder="예: RTX 3060, GTX 1060">
+          <button onclick="searchPart('gpu')" class="spec-btn">검색</button>
+        </div>
+        <div id="gpuList" class="result-list"></div>
+        <div id="gpuSelectedText" class="selected-text">선택된 부품 없음</div>
+        <input type="hidden" id="myGpuScore" value="0">
+      </div>
+    </div>
+
+    <div class="spec-result-container">
+      <h3>3. 구동 여부 확인</h3>
+      <button onclick="checkCanRun()" class="check-btn">🎮 실행 가능한지 확인하기</button>
+      <div id="finalResult" class="final-result">
+        부품을 선택하고 버튼을 눌러주세요.
+      </div>
+    </div>
+  </section>
   
+  <script type="module">
+  // supabase import 추가
+  import supabase from './scripts/supabase.js';
+
+  // 부품 검색 함수
+  async function searchPart(type) {
+    const inputId = type + 'Input';
+    const listId = type + 'List';
+    const tableName = type + '_tb';
+
+    const keyword = document.getElementById(inputId).value;
+    const listDiv = document.getElementById(listId);
+
+    if(!keyword) { 
+      alert("검색어를 입력하세요!"); 
+      return; 
+    }
+
+    listDiv.style.display = 'block';
+    listDiv.innerHTML = '<div class="result-item">검색 중...</div>';
+
+    try {
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .ilike('model_name', '%' + keyword + '%')
+        .order('score', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error("Supabase Error:", error);
+        listDiv.innerHTML = '<div class="result-item">오류: ' + error.message + '</div>';
+        return;
+      }
+
+      listDiv.innerHTML = '';
+
+      if (!data || data.length === 0) {
+        listDiv.innerHTML = '<div class="result-item">검색 결과가 없습니다.</div>';
+        return;
+      }
+
+      data.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        div.innerHTML = `<strong>${item.model_name}</strong><br><span style="font-size:0.85em; color:#64748b;">점수: ${item.score}</span>`;
+        
+        div.onclick = function() {
+          selectPart(type, item.model_name, item.score);
+        };
+        listDiv.appendChild(div);
+      });
+    } catch (err) {
+      console.error('검색 오류:', err);
+      listDiv.innerHTML = '<div class="result-item">검색 실패: ' + err.message + '</div>';
+    }
+  }
+
+  // 부품 선택 함수
+  function selectPart(type, name, score) {
+    document.getElementById(type + 'SelectedText').innerText = `✅ 선택됨: ${name}`;
+    document.getElementById('my' + type.charAt(0).toUpperCase() + type.slice(1) + 'Score').value = score;
+    document.getElementById(type + 'List').style.display = 'none';
+  }
+
+  // 최종 비교 함수
+  async function checkCanRun() {
+    const myCpuScore = parseInt(document.getElementById('myCpuScore').value);
+    const myGpuScore = parseInt(document.getElementById('myGpuScore').value);
+    const resultDiv = document.getElementById('finalResult');
+
+    const params = new URLSearchParams(window.location.search);
+    const gameSlug = params.get('id');
+
+    if (myCpuScore === 0 || myGpuScore === 0) {
+      alert("먼저 CPU와 그래픽카드를 검색해서 선택해주세요!");
+      return;
+    }
+
+    resultDiv.innerHTML = "게임 데이터 분석 중...";
+
+    try {
+      const { data: gameData, error: gameError } = await supabase
+        .from('Games')
+        .select('steam_app_id')
+        .eq('slug', gameSlug)
+        .single();
+
+      if (gameError || !gameData?.steam_app_id) {
+        resultDiv.innerHTML = "<span class='spec-fail'>게임 정보를 찾을 수 없습니다.</span>";
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('game_score_tb')
+        .select('*')
+        .eq('steam_app_id', gameData.steam_app_id)
+        .single();
+
+      if (error || !data) {
+        console.error(error);
+        resultDiv.innerHTML = "<span class='spec-fail'>이 게임의 사양 데이터가 아직 등록되지 않았습니다.</span>";
+        return;
+      }
+
+      let cpuStatus = (myCpuScore >= data.min_cpu_score) ? 
+                      `<span class="spec-pass">합격</span>` : `<span class="spec-fail">불합격</span>`;
+      
+      let gpuStatus = (myGpuScore >= data.min_gpu_score) ? 
+                      `<span class="spec-pass">합격</span>` : `<span class="spec-fail">불합격</span>`;
+
+      let finalVerdict = "";
+      if (myCpuScore >= data.min_cpu_score && myGpuScore >= data.min_gpu_score) {
+        finalVerdict = `<h3 class="spec-pass" style="margin-top:15px;">🎉 플레이 가능! (최소사양 충족)</h3>`;
+      } else {
+        finalVerdict = `<h3 class="spec-fail" style="margin-top:15px;">😢 구동 불가 (사양 부족)</h3>`;
+      }
+
+      resultDiv.innerHTML = `
+        <h4>[ 분석 결과 ]</h4>
+        <p><strong>CPU:</strong> ${cpuStatus} (내 점수: ${myCpuScore} / 필요: ${data.min_cpu_score})</p>
+        <p><strong>GPU:</strong> ${gpuStatus} (내 점수: ${myGpuScore} / 필요: ${data.min_gpu_score})</p>
+        ${finalVerdict}
+      `;
+    } catch (err) {
+      console.error('확인 오류:', err);
+      resultDiv.innerHTML = "<span class='spec-fail'>오류가 발생했습니다: " + err.message + "</span>";
+    }
+  }
+
+  // 전역 함수로 등록 (HTML onclick에서 사용)
+  window.searchPart = searchPart;
+  window.checkCanRun = checkCanRun;
+</script>
+
   <section class="reviews-section" id="reviews">
   <h2>평가 작성</h2>
 

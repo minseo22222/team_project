@@ -77,6 +77,14 @@
         border: 2px solid #e5e7eb;
         border-top: none;
     }
+ 
+    .post-content-box img {
+        max-width: 80%;    /* 너비가 박스를 넘지 않도록 제한 */
+        height: auto;       /* 높이는 비율에 맞춰 자동 조절 */
+        border-radius: 8px; /* 모서리 둥글게 (선택) */
+        display: block;     /* 줄바꿈 */
+        margin: 10px auto;  /* 위아래 여백, 가운데 정렬 */
+    }
 
     /* 수정 폼 */
     .edit-form {

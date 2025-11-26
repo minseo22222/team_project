@@ -116,45 +116,109 @@ async function loadPosts() {
     }
 }
 
-// 글쓰기 폼 토글
-window.toggleWriteForm = function () {
-    if (!currentUser) {
+// ==========================================
+    // [수정됨] 이미지 업로드 기능이 추가된 글쓰기 폼 토글
+    // ==========================================
+    window.toggleWriteForm = function () {
+      if (!currentUser) {
         alert('로그인이 필요합니다.');
-        window.location.href = `/login.html?redirect=${encodeURIComponent(window.location.href)}`;
+        // 필요시 로그인 페이지 경로 수정
+        // window.location.href = `/login.html?redirect=${encodeURIComponent(window.location.href)}`;
         return;
-    }
+      }
 
-    const form = document.getElementById('writeForm');
+      const form = document.getElementById('writeForm');
 
-    if (form.style.display === 'none') {
+      if (form.style.display === 'none') {
         form.style.display = 'block';
 
-        // Quill 에디터 초기화 (처음 한 번만)
+        // Quill 에디터 초기화 (처음 한 번만 실행)
         if (!quill) {
-            quill = new Quill('#editor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        [{ 'size': ['small', false, 'large', 'huge'] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'color': [] }, { 'background': [] }],
-                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                        ['link'],
-                        ['clean']
-                    ]
-                },
-                placeholder: '내용을 입력하세요...'
-            });
-        } else {
-            quill.setText('');
+          quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+              toolbar: {
+                container: [
+                  [{ 'header': [1, 2, 3, false] }],
+                  ['bold', 'italic', 'underline', 'strike'],
+                  [{ 'color': [] }, { 'background': [] }],
+                  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                  ['image', 'link', 'clean'] // 'image' 버튼 필수
+                ],
+                handlers: {
+                  // 기본 이미지 동작을 가로채서 우리 함수(imageHandler)를 실행
+                  'image': imageHandler 
+                }
+              }
+            },
+            placeholder: '내용을 입력하세요... (이미지 버튼을 눌러 사진을 올릴 수 있습니다)'
+          });
         }
-    } else {
+      } else {
         form.style.display = 'none';
-        document.getElementById('postTitle').value = '';
-        if (quill) quill.setText('');
+      }
+    };
+
+    // ==========================================
+    // [신규] 이미지 핸들러 (파일 선택 -> 업로드 -> 에디터 삽입)
+    // ==========================================
+    function imageHandler() {
+      // 1. 가상의 파일 선택창(<input type="file">)을 만듦
+      const input = document.createElement('input');
+      input.setAttribute('type', 'file');
+      input.setAttribute('accept', 'image/*'); // 이미지 파일만 허용
+      input.click(); // 클릭해서 창 띄우기
+
+      // 2. 사용자가 파일을 선택했을 때 실행
+      input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        // 파일 유효성 검사 (예: 5MB 제한)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('이미지 크기는 5MB 이하여야 합니다.');
+          return;
+        }
+
+        try {
+          // 3. 파일명 생성 (겹치지 않게 시간+랜덤값 사용)
+          // 예: 1700000_랜덤.png
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+          const filePath = `${currentUser.id}/${fileName}`; // 폴더별 정리 (선택사항)
+
+          // 로딩 표시 (선택사항)
+          // alert('이미지 업로드 중...'); 
+
+          // 4. Supabase Storage에 업로드
+          const { data, error } = await supabase
+            .storage
+            .from('guide_images') // 1단계에서 만든 버킷 이름
+            .upload(filePath, file);
+
+          if (error) throw error;
+
+          // 5. 업로드된 이미지의 공개 URL 가져오기
+          const { data: publicData } = supabase
+            .storage
+            .from('guide_images')
+            .getPublicUrl(filePath);
+            
+          const publicUrl = publicData.publicUrl;
+
+          // 6. Quill 에디터의 현재 커서 위치에 이미지 태그 삽입
+          const range = quill.getSelection(true);
+          quill.insertEmbed(range.index, 'image', publicUrl);
+          
+          // 커서를 이미지 다음으로 이동
+          quill.setSelection(range.index + 1);
+
+        } catch (err) {
+          console.error('이미지 업로드 실패:', err);
+          alert('이미지 업로드에 실패했습니다.');
+        }
+      };
     }
-};
 
 // 게시글 등록
 window.submitPost = async function () {

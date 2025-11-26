@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>랭킹 - 갓겜판독기</title>
+    <link rel="stylesheet" href="./css/style_ranking.css">
+</head>
+
+<body>
+    <div id="header"></div>
+    <script type="module">
+        fetch('components/header.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('header').innerHTML = html;
+                
+                // [수정된 부분] 현재 페이지 주소를 redirect 요소에 저장 (이게 없어서 'min'이 떴던 것임)
+                const redirectURL = document.getElementById('redirect');
+                if (redirectURL) {
+                    redirectURL.textContent = window.location.href;
+                }
+
+                // 헤더 유저 스크립트 실행
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = 'scripts/header_user.js';
+                document.body.appendChild(script);
+            });
+    </script>
+
+    <main>
+        <div class="page-title-box">
+            <h1>🏆 명예의 전당</h1>
+            <p>유저 평가 기반 TOP 10 게임</p>
+        </div>
+
+        <section class="podium-section" id="top3-container">
+            <div class="loading">랭킹 데이터를 불러오는 중...</div>
+        </section>
+
+        <section class="rank-list-section">
+            <h2 class="section-label">TOP 4 - 10</h2>
+            <div id="rank-list" class="rank-list"></div>
+        </section>
+    </main>
+
+    <script type="module" src="./scripts/ranking.js"></script>
+</body>
+</html>

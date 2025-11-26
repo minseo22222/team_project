@@ -2,7 +2,7 @@
    1. 핵심 변수 및 기본 설정 (Core Variables)
    ========================================= */
 :root {
-    /* --- 팝 아트(Neo-Brutalism) 컬러 --- */
+    /* --- 팝 아트 컬러 팔레트 --- */
     --bg-color: #FFDE59;       /* 배경: 쨍한 노란색 */
     --card-bg: #FFFFFF;        /* 카드 배경: 흰색 */
     --ink: #000000;            /* 텍스트: 완전 검정 */
@@ -25,7 +25,7 @@ body {
     font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-color);
     color: var(--ink);
-    /* 배경 패턴 */
+    /* 도트 패턴 배경 */
     background-image: radial-gradient(#000 1px, transparent 1px);
     background-size: 20px 20px;
 }
@@ -33,7 +33,7 @@ body {
 a { text-decoration: none; color: inherit; }
 
 /* =========================================
-   2. 헤더 (Header)
+   2. 헤더 및 네비게이션 (Header)
    ========================================= */
 header {
     position: sticky;
@@ -71,7 +71,6 @@ header {
 .nav-links a { font-weight: 700; font-size: 16px; padding: 4px 8px; transition: transform 0.1s; }
 .nav-links a:hover { background: #000; color: #fff; transform: rotate(-2deg); }
 
-/* 검색창 */
 .search { flex: 1; display: flex; justify-content: center; }
 .search-field { width: min(40vw, 400px); position: relative; }
 .search-field input {
@@ -83,14 +82,12 @@ header {
 .search-field input:focus { background: #fffff0; transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
 .search-field .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; }
 
-/* 유저 액션 */
 .actions { display: flex; gap: 12px; align-items: center; position: relative; }
 #user_profile {
     width: 40px; height: 40px; border: 2px solid #000;
     background: #eee; object-fit: cover; cursor: pointer; box-shadow: 2px 2px 0 #000;
 }
 
-/* 드롭다운 메뉴 */
 .menu {
     position: absolute; right: 0; top: calc(100% + 10px);
     width: 140px; background: #fff; border: 2px solid #000;
@@ -117,7 +114,7 @@ main { max-width: 1200px; margin: 40px auto; padding: 0 16px; }
 }
 
 /* =========================================
-   4. [중요] 게임 상세 헤더 (Game Header)
+   4. [수정됨] 게임 상세 헤더 (Game Header)
    ========================================= */
 .game-header {
     background: #fff;
@@ -125,59 +122,64 @@ main { max-width: 1200px; margin: 40px auto; padding: 0 16px; }
     padding: 32px;
     margin-bottom: 32px;
     box-shadow: var(--shadow-hard);
+    overflow: hidden; /* 컨텐츠 넘침 방지 */
 }
 
-/* --- [수정됨] 갤러리 레이아웃 복구 --- */
 .game-header-content {
-    display: flex;         /* 가로 정렬 */
+    display: flex;         
     align-items: flex-start;
-    gap: 20px;             /* 큰 이미지와 썸네일 사이 간격 */
+    gap: 24px;             
 }
 
-/* 왼쪽 큰 이미지 영역 */
+/* 왼쪽 큰 이미지 영역 - Flex 비율 조정 */
 .main-image-wrapper {
-    flex: 1;               /* 남은 공간 모두 차지 */
-    min-width: 0;          /* flex 자식 요소 넘침 방지 */
+    flex: 1;               
+    min-width: 0;          /* 이미지 크기 계산 오류 방지 (중요) */
+    position: relative;
+    background: #000;      /* 이미지가 작을 때 배경 검정 */
+    border: var(--border-w) solid #000;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
 }
 
 .game-cover-large {
-    width: 100%;           /* 부모 너비에 맞춤 */
-    height: auto;          /* 비율 유지 (잘림 방지) */
+    width: 100%;           
+    height: auto;          
+    max-height: 500px;     /* 너무 길어지지 않게 제한 */
     display: block;
-    border: var(--border-w) solid #000;
-    box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
-    object-fit: contain;   /* 이미지가 잘리지 않고 다 보이게 함 */
+    object-fit: contain;   /* 이미지가 잘리지 않게 비율 유지 */
+    margin: 0 auto;
 }
 
-/* 오른쪽 썸네일 리스트 영역 (복구됨) */
+/* 오른쪽 썸네일 리스트 - 흔들림(Flicker) 수정됨 */
 .thumbnail-list {
     display: flex;
-    flex-direction: column; /* 세로로 나열 */
-    gap: 10px;
-    width: 130px;          /* 썸네일 목록 고정 너비 */
-    max-height: 600px;     /* 너무 길어지면 스크롤 */
-    overflow-y: auto;      /* 세로 스크롤 허용 */
-    padding-right: 5px;    /* 스크롤바 공간 */
+    flex-direction: column;
+    gap: 12px;
+    width: 140px;          /* 너비 고정 */
+    max-height: 500px;     
+    overflow-y: auto;      
+    padding-right: 5px;    
+    flex-shrink: 0;        /* 메인 이미지에 밀리지 않도록 고정 */
 }
 
 .thumbnail-list img {
-    width: 100%;           /* 리스트 너비에 꽉 차게 */
-    height: 80px;          /* 고정 높이 */
-    object-fit: cover;     /* 썸네일은 꽉 차게 */
-    border: 2px solid #000;
+    width: 100%;           
+    height: 80px;          
+    object-fit: cover;     
+    border: 3px solid #000; /* 테두리 */
     cursor: pointer;
-    transition: all 0.1s;
     background: #fff;
+    /* transition: transform ... 제거! (흔들림 원인 제거) */
 }
 
+/* 마우스 올렸을 때: 위치 이동 없이 색상만 변경 */
 .thumbnail-list img:hover {
-    border-color: var(--brand);
-    transform: translate(-2px, -2px);
-    box-shadow: 3px 3px 0 #000;
+    border-color: var(--brand); /* 파란색 테두리 */
+    filter: brightness(0.8);    /* 살짝 어둡게 효과 */
 }
+
 /* ------------------------------------- */
 
-/* 게임 텍스트 정보 */
 .game-info h1 {
     font-size: 36px; font-weight: 900; margin: 24px 0 16px 0;
     text-transform: uppercase; text-shadow: 2px 2px 0 #ddd;
@@ -189,7 +191,6 @@ main { max-width: 1200px; margin: 40px auto; padding: 0 16px; }
     background: #fff; color: #000; font-weight: 800; box-shadow: 2px 2px 0 #000;
 }
 
-/* 가격 박스 */
 .price-box {
     background: #fff; border: var(--border-w) solid #000;
     padding: 20px; margin: 24px 0; box-shadow: 4px 4px 0 #000;
@@ -232,10 +233,13 @@ main { max-width: 1200px; margin: 40px auto; padding: 0 16px; }
 /* 반응형 (모바일) */
 @media (max-width: 900px) {
     .game-header-content { flex-direction: column; }
+    
     .thumbnail-list {
         flex-direction: row; /* 모바일에서는 가로 스크롤 */
         width: 100%; height: auto; overflow-x: auto;
+        padding-bottom: 10px;
     }
     .thumbnail-list img { width: 80px; height: 60px; flex-shrink: 0; }
+    
     .search-field { display: none; }
 }

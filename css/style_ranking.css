@@ -1,0 +1,220 @@
+/* =========================================
+   1. 핵심 변수 & 헤더 스타일 (홈 화면과 통일)
+   ========================================= */
+:root {
+    /* --- Pop Art 테마 변수 --- */
+    --bg-color: #FFDE59;       /* 쨍한 노란색 */
+    --card-bg: #FFFFFF;        /* 흰색 카드 */
+    --ink: #000000;            /* 텍스트 검정 */
+    --brand: #54C1FF;          /* 포인트 파란색 */
+    --accent-pink: #FF90E8;    /* 포인트 핑크 */
+    
+    /* --- 레이아웃 변수 --- */
+    --nav-h: 64px;
+    --border-w: 3px;           /* 굵은 테두리 */
+    --shadow-hard: 4px 4px 0px 0px #000000; /* 딱딱한 그림자 */
+    
+    /* 랭킹 전용 색상 */
+    --gold: #FFD700;
+    --silver: #C0C0C0;
+    --bronze: #CD7F32;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Pretendard', system-ui, sans-serif;
+    background-color: var(--bg-color);
+    background-image: radial-gradient(#000 1px, transparent 1px);
+    background-size: 20px 20px;
+    color: var(--ink);
+}
+
+a { text-decoration: none; color: inherit; }
+
+/* -----------------------------------------
+   [중요] 헤더 스타일 (style_home.css와 통일)
+   ----------------------------------------- */
+header, .fixed-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    height: var(--nav-h);
+    background: #fff !important;
+    border-bottom: var(--border-w) solid #000 !important;
+    box-shadow: 0 2px 0 #000 !important;
+    width: 100% !important;
+    display: block !important;
+}
+
+.nav {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+/* 왼쪽: 로고 및 링크 */
+.brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.brand .logo {
+    width: 32px; height: 32px;
+    border: 2px solid #000;
+    display: grid; place-items: center;
+    background: var(--brand);
+    color: #000; font-weight: 900;
+}
+.brand-name { font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; }
+
+.nav-links { display: flex; gap: 18px; margin-left: 16px; white-space: nowrap; }
+.nav-links a { 
+    color: var(--ink); font-weight: 700; text-decoration: none; padding: 4px 8px;
+    border: 2px solid transparent; transition: transform 0.1s;
+}
+.nav-links a:hover {
+    background: #000; color: #fff; transform: rotate(-2deg);
+}
+
+/* 중앙: 검색창 */
+.search { flex: 1; display: flex; justify-content: center; }
+.search-field { width: min(56vw, 560px); position: relative; }
+.search-field input {
+    width: 100%; height: 40px; padding: 0 14px 0 40px;
+    border: 2px solid #000; border-radius: 0; outline: none; background: #fff;
+    font-weight: 600; box-shadow: 3px 3px 0 #000; transition: all 0.1s;
+}
+.search-field input:focus { background: #fffff0; transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+.search-field .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; opacity: 1; fill: #000; }
+
+/* 오른쪽: 유저 액션 (여기가 문제였음 -> 수정됨) */
+.actions { display: flex; gap: 10px; align-items: center; position: relative; }
+.link { color: var(--ink); text-decoration: none; font-weight: 700; }
+.link:hover { text-decoration: underline; }
+
+/* [핵심 수정] 프로필 이미지 스타일을 홈 화면과 맞춤 */
+#user_profile {
+    width: 36px; height: 36px; 
+    border: 2px solid #000; 
+    background: #eee;
+    object-fit: cover; 
+    cursor: pointer; 
+    box-shadow: 2px 2px 0 #000; /* 홈 화면 스타일 */
+    border-radius: 0; /* 사각형 (홈 화면과 동일하게 하려면 0, 원형이면 50%) */
+}
+
+/* 드롭다운 메뉴 */
+.menu {
+    position: absolute; right: 0; top: calc(100% + 10px);
+    width: 140px; background: #fff; border: 2px solid #000;
+    box-shadow: 4px 4px 0 #000; border-radius: 0;
+    overflow: hidden; max-height: 0; opacity: 0; transition: all 0.2s; z-index: 2000;
+}
+.menu.open { max-height: 400px; opacity: 1; padding: 0; }
+.menu ul { list-style: none; margin: 0; padding: 0; }
+.menu li { padding: 12px 16px; cursor: pointer; border-bottom: 2px solid #000; font-weight: 700; }
+.menu li:last-child { border-bottom: none; }
+.menu li:hover { background: var(--brand); color: #fff; }
+
+/* =========================================
+   2. 랭킹 페이지 메인 레이아웃
+   ========================================= */
+main {
+    max-width: 1000px;
+    margin: 60px auto 40px;
+    padding: 0 16px;
+}
+
+/* 타이틀 */
+.page-title-box {
+    text-align: center; margin: 0 auto 60px;
+    background: #fff; border: 3px solid #000;
+    padding: 20px 40px; box-shadow: 4px 4px 0 #000;
+    width: fit-content; margin-left: auto; margin-right: auto;
+}
+.page-title-box h1 { margin: 0; font-size: 32px; font-weight: 900; }
+.page-title-box p { margin: 8px 0 0; font-weight: 700; color: #555; }
+
+/* 시상대 (Podium) */
+.podium-section {
+    display: flex; justify-content: center; align-items: flex-end;
+    gap: 20px; margin-bottom: 80px; height: 460px;
+}
+
+.podium-item {
+    display: flex; flex-direction: column; align-items: center;
+    width: 240px; position: relative; flex-shrink: 0;
+}
+
+/* 빈 시상대 */
+.podium-item.empty { visibility: hidden; }
+
+/* 게임 카드 */
+.game-card {
+    width: 100%; background: #fff; border: 3px solid #000;
+    padding: 10px; box-shadow: 4px 4px 0 #000; text-align: center;
+    cursor: pointer; transition: transform 0.2s; margin-bottom: 10px;
+    display: flex; flex-direction: column; align-items: center;
+}
+.game-card:hover { transform: translateY(-5px); background: #FFFFF0; }
+
+.game-cover {
+    width: 100%; aspect-ratio: 16/9; object-fit: cover;
+    border: 2px solid #000; margin-bottom: 8px; background: #eee;
+}
+
+.game-title { font-weight: 800; font-size: 16px; margin-bottom: 4px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.game-rating { font-weight: 700; color: #FACC15; background: #000; padding: 2px 8px; font-size: 13px; border-radius: 4px; }
+
+/* 뱃지 & 받침대 */
+.rank-badge {
+    width: 40px; height: 40px; border: 3px solid #000;
+    border-radius: 50%; display: grid; place-items: center;
+    font-weight: 900; font-size: 20px; position: absolute;
+    bottom: 30px; left: 50%; transform: translateX(-50%);
+    z-index: 20; background: #fff; box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+}
+.podium-base { width: 100%; border: 3px solid #000; box-shadow: 4px 4px 0 #000; }
+
+/* 등수별 스타일 */
+.rank-1 { z-index: 3; transform: scale(1.1); }
+.rank-1 .podium-base { height: 160px; background: var(--gold); }
+.rank-1 .rank-badge { background: var(--gold); color: #000; }
+.crown { font-size: 50px; position: absolute; top: -60px; animation: bounce 2s infinite; }
+
+.rank-2 { z-index: 2; }
+.rank-2 .podium-base { height: 100px; background: var(--silver); }
+.rank-2 .rank-badge { background: var(--silver); color: #000; }
+
+.rank-3 { z-index: 1; }
+.rank-3 .podium-base { height: 60px; background: var(--bronze); }
+.rank-3 .rank-badge { background: var(--bronze); color: #000; }
+
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* 리스트 영역 */
+.rank-list-section { background: #fff; border: 3px solid #000; padding: 30px; box-shadow: 6px 6px 0 #000; }
+.section-label { font-size: 24px; font-weight: 900; background: #000; color: #fff; display: inline-block; padding: 6px 16px; transform: rotate(-1deg); margin-bottom: 20px; }
+.rank-list { display: flex; flex-direction: column; gap: 12px; }
+.rank-row { display: flex; align-items: center; background: #fff; border: 2px solid #000; padding: 10px 16px; cursor: pointer; transition: transform 0.1s; }
+.rank-row:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 #000; background: #f9f9f9; }
+.rank-num { font-size: 24px; font-weight: 900; width: 50px; text-align: center; }
+.row-cover { width: 100px; height: 60px; object-fit: cover; border: 2px solid #000; margin-right: 20px; }
+.row-info { flex: 1; }
+.row-title { font-size: 18px; font-weight: 800; }
+.row-score { font-size: 16px; font-weight: 800; }
+
+/* 에러/로딩 */
+.error, .loading { text-align: center; padding: 20px; font-weight: 700; color: #555; font-size: 18px; }
+
+/* 반응형 */
+@media (max-width: 900px) {
+    .nav-links { display: none !important; }
+    .search-field { width: 100%; margin: 0 10px; }
+    .podium-section { flex-direction: column; height: auto; align-items: center; gap: 50px; }
+    .rank-1, .rank-2, .rank-3 { width: 90%; transform: none; }
+    .podium-base { display: none; }
+    .crown { top: -50px; }
+}

@@ -1,108 +1,210 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>login</title>
+  <title>로그인 - 갓겜판독기</title>
   <style>
+    /* --- Pop Art 테마 변수 --- */
+    :root {
+        --bg-color: #FFDE59;       /* 배경: 쨍한 노란색 */
+        --card-bg: #FFFFFF;        /* 카드: 흰색 */
+        --ink: #000000;            /* 텍스트: 검정 */
+        --brand: #54C1FF;          /* 포인트: 파란색 */
+        --accent-pink: #FF90E8;    /* 강조: 핑크 */
+        --border-w: 3px;           /* 테두리 두께 */
+        --shadow-hard: 6px 6px 0px 0px #000000; /* 딱딱한 그림자 */
+    }
+
     html, body { height: 100%; margin: 0; }
+    
     body {
       min-height: 100vh;                 
       display: flex;                    
       justify-content: center;           
       align-items: center;               
-      background: #97b3e1;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      
+      background-color: var(--bg-color);
+      /* 도트 패턴 배경 */
+      background-image: radial-gradient(#000 1px, transparent 1px);
+      background-size: 20px 20px;
+      
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
     }
 
+    /* 로그인 카드 */
     .login-card {
-      width: min(92vw, 420px);           
-      padding: 28px 24px;
+      width: min(90vw, 400px);           
+      padding: 40px 30px;
       background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
-      display: grid;                    
-      gap: 12px;
+      border: var(--border-w) solid #000;
+      box-shadow: var(--shadow-hard); /* 팝 아트 그림자 */
+      border-radius: 0; /* 둥근 모서리 제거 */
+      
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    /* 장식용 스티커 효과 (선택 사항) */
+    .login-card::before {
+        content: "LOGIN";
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%) rotate(-3deg);
+        background: var(--brand);
+        border: 2px solid #000;
+        padding: 4px 12px;
+        font-weight: 900;
+        font-size: 14px;
+        box-shadow: 3px 3px 0 #000;
+        z-index: 1;
     }
 
     .login-card h2 {
-      margin: 0 0 8px;
-      font-size: 20px;
+      margin: 0 0 10px;
+      font-size: 32px;
+      font-weight: 900;
       text-align: center;
+      text-transform: uppercase;
+      letter-spacing: -1px;
     }
 
     .field {
       display: grid;
-      gap: 6px;
+      gap: 8px;
     }
 
     label {
-      font-size: 14px;
-      color: #333;
+      font-size: 16px;
+      font-weight: 800;
+      color: #000;
+      background: var(--accent-pink); /* 라벨 배경 강조 */
+      width: fit-content;
+      padding: 2px 6px;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0 #000;
     }
     
     *, *::before, *::after { box-sizing: border-box; }
-    input[type="text"],
-    input[type="password"]{
-    width: 100%;
-    max-width: 100%;
-    display: block;
-    box-sizing: border-box;
-    padding: 10px 12px;
-    border: 1px solid #d7dbe0;
-    border-radius: 8px;
-    font-size: 14px;
-    }
-    input:focus { border-color: #4c8bf5; box-shadow: 0 0 0 3px rgba(76,139,245,.15); }
 
+    /* 입력창 스타일 */
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      display: block;
+      padding: 12px 14px;
+      border: 2px solid #000;
+      border-radius: 0;
+      font-size: 16px;
+      font-weight: 600;
+      background: #fff;
+      transition: all 0.15s ease;
+      box-shadow: 3px 3px 0 #eee; /* 기본 옅은 그림자 */
+    }
+
+    /* 입력창 포커스 효과 */
+    input:focus { 
+        outline: none;
+        background: #fffff0;
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0 #000; /* 포커스 시 진한 그림자 */
+        border-color: var(--brand);
+    }
+
+    /* 버튼 영역 */
     .actions {
       display: flex;
-      gap: 10px;
-      margin-top: 24px;
+      gap: 12px;
+      margin-top: 10px;
     }
+
     button {
       flex: 1;
-      padding: 10px 12px;
-      background: rgb(69, 218, 218);
-      border: none;
-      border-radius: 8px;
-      font-weight: 700;                 
+      padding: 14px;
+      border: 2px solid #000;
+      border-radius: 0;
+      font-weight: 900;                 
+      font-size: 16px;
       cursor: pointer;
+      box-shadow: 4px 4px 0 #000;
+      transition: all 0.1s;
+      text-transform: uppercase;
     }
-    button[type="reset"] { background: #74bee1; }
 
+    /* 로그인 버튼 */
+    button[type="submit"] { 
+        background: var(--brand); 
+        color: #000;
+    }
+    button[type="submit"]:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0 #000;
+        background: #40b0ee;
+    }
+    button[type="submit"]:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 #000;
+    }
+
+    /* 다시쓰기 버튼 */
+    button[type="reset"] { 
+        background: #fff; 
+        color: #000;
+    }
+    button[type="reset"]:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0 #000;
+        background: #f0f0f0;
+    }
+    button[type="reset"]:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 #000;
+    }
+
+    /* 하단 링크 */
     .links {
-      margin-top: 4px;
+      margin-top: 20px;
       text-align: center;
       font-size: 14px;
+      font-weight: 700;
     }
-    .links a { color: #3366cc; text-decoration: none; }
-    .links a:hover { text-decoration: underline; }
+    .links a { 
+        color: #000; 
+        text-decoration: none; 
+        border-bottom: 2px solid transparent;
+        transition: border-color 0.2s;
+    }
+    .links a:hover { 
+        color: var(--brand);
+        border-bottom: 2px solid var(--brand);
+    }
 
-    
     @media (max-width: 360px) {
-      .login-card { padding: 18px 14px; }
+      .login-card { padding: 30px 20px; width: 95vw; }
     }
   </style>
 </head>
 <body>
   <form class="login-card" action="" id="form">
-    <h2>로그인</h2>
+    <h2>Login</h2>
 
     <div class="field">
-      <label for="email">이메일</label>
-      <input id="email" type="text" placeholder="email 입력" autocomplete="username" />
+      <label for="email">Email</label>
+      <input id="email" type="text" placeholder="이메일을 입력하세요" autocomplete="username" />
     </div>
 
     <div class="field">
-      <label for="pwd">비밀번호</label>
-      <input id="pwd" type="password" placeholder="password" autocomplete="current-password" />
+      <label for="pwd">Password</label>
+      <input id="pwd" type="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password" />
     </div>
 
     <div class="actions">
       <button type="submit">로그인</button>
-      <button type="reset">다시쓰기</button>
+      <button type="reset">지우기</button>
     </div>
 
     <div class="links">

@@ -11,15 +11,15 @@ import supabase from './supabase.js';
  *   顶部发表表单 | 상단 작성 폼
  *   提交按钮     | 제출 버튼
  */
-const listEl = document.getElementById('review-list');
+const listEl      = document.getElementById('review-list');
 const loadMoreBtn = document.getElementById('load-more');
-const sortBtns = document.querySelectorAll('.sort-btn');
-const formEl = document.querySelector('.review-composer');
-const submitBtn = document.querySelector('.review-actions input[type="submit"]');
+const sortBtns    = document.querySelectorAll('.sort-btn');
+const formEl      = document.querySelector('.review-composer');
+const submitBtn   = document.querySelector('.review-actions input[type="submit"]');
 
-const loginURL = `./login.html?redirect=${encodeURIComponent(location.href)}`;
-const USERS_TABLE = 'Users';
-const USER_PK_COL = 'user_id';
+const loginURL     = `./login.html?redirect=${encodeURIComponent(location.href)}`;
+const USERS_TABLE  = 'Users';
+const USER_PK_COL  = 'user_id';
 
 /* ================================
  * 状态 State
@@ -45,15 +45,16 @@ let CURRENT_USER_ID = null;
  * ========================================= */
 (async function main() {
   // 读取当前用户 | 현재 사용자 조회
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data:{ user } } = await supabase.auth.getUser();
   CURRENT_USER_ID = user?.id || null;
+
+  // 关闭浏览器原生表单校验（用我们自己的 JS 校验）
+  // 브라우저 기본 폼 검증 비활성화(커스텀 JS 검증 사용)
+  formEl?.setAttribute('novalidate', 'true');
 
   // 监听登录状态变化：变化时刷新列表
   // 로그인 상태 변경 감지: 변경 시 목록 새로고침
   supabase.auth.onAuthStateChange(async (_event, session) => {
-    if (!session) {
-      return;
-    }
     const newId = session?.user?.id || null;
     if (newId !== CURRENT_USER_ID) {
       CURRENT_USER_ID = newId;
@@ -68,30 +69,17 @@ let CURRENT_USER_ID = null;
   // 通过 slug 查询 game_id | slug로 game_id 조회
   const { data: gameRow, error: gErr } = await supabase
     .from('Games')
-    .select('game_id,release_date')
+    .select('game_id')
     .eq('slug', SLUG)
     .single();
   if (gErr || !gameRow?.game_id) {
     console.error('게임 조회 실패:', gErr);
     return fail('게임을 찾을 수 없습니다.');
   }
-  const today = new Date().toISOString().slice(0, 10);
-  if (gameRow.release_date <= today) {
-    GAME_ID = gameRow.game_id;
+  GAME_ID = gameRow.game_id;
 
-    bindEvents();
-    await reload();
-  }
-  else {
-    const today = new Date();
-    const releaseDate = new Date(gameRow.release_date);
-
-    const diffDay = Math.ceil((releaseDate - today) / (1000 * 60 * 60 * 24));
-    document.getElementById('reviews').style.display = 'none';
-    document.getElementById('load-more').textContent = `출시까지 D-  ${diffDay}`;
-    console.log("미출시")
-    console.log(gameRow.release_date)
-  }
+  bindEvents();
+  await reload();
 })();
 
 /* =========================================
@@ -117,7 +105,7 @@ function bindEvents() {
 
   // 未登录时点击“评价”跳登录 | 미로그인 시 '평가' 클릭 → 로그인 이동
   submitBtn?.addEventListener('click', async (e) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data:{ user } } = await supabase.auth.getUser();
     if (!user) { e.preventDefault(); location.href = loginURL; }
   });
 
@@ -141,16 +129,39 @@ function bindEvents() {
 async function onSubmitComment(e) {
   e.preventDefault();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data:{ user } } = await supabase.auth.getUser();
   if (!user) { location.href = loginURL; return; }
   if (!GAME_ID) { alert('game_id 를 찾을 수 없습니다.'); return; }
 
   const fd = new FormData(formEl);
-  const rating = Number(fd.get('rating'));
-  const content = String(fd.get('comment') || '').trim();
-  const isRecommended = fd.get('is_recommended') === '1' ? 1 : 0;
 
-  if (!rating || !content) { alert('별점과 내용을 입력해 주세요.'); return; }
+  // ⭐ 星级校验：未选则为 null（自定义弹窗+滚动至星级区域）
+  // ⭐ 별점 검증: 미선택이면 null (커스텀 알럿 + 별점 영역 스크롤)
+  const ratingRaw = fd.get('rating');
+  if (ratingRaw === null) {
+    alert('별점을 선택해 주세요.'); // 请选择星级
+    formEl.querySelector('.rating')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  const rating = Number(ratingRaw);
+
+  // 👍/👎 推荐校验：未选则为 null（自定义弹窗+滚动至推荐区域）
+  // 👍/👎 추천 검증: 미선택이면 null (커스텀 알럿 + 추천 영역 스크롤)
+  const recRaw = fd.get('is_recommended');
+  if (recRaw === null) {
+    alert('추천/비추천을 선택해 주세요.'); // 请选择推荐/不推荐
+    formEl.querySelector('.recommend')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  const isRecommended = Number(recRaw); // 1 or 0
+
+  // 📝 评论内容 | 댓글 내용
+  const content = String(fd.get('comment') || '').trim();
+  if (!content) {
+    alert('내용을 입력해 주세요.'); // 请输入内容
+    formEl.querySelector('textarea[name="comment"]')?.focus();
+    return;
+  }
 
   // 友好前置检查（数据库已有唯一约束兜底）
   // 사전 확인 (DB의 유니크 제약으로 최종 보강)
@@ -197,7 +208,7 @@ async function onVoteClick(e) {
   const btn = e.target.closest('.vote-btn');
   if (!btn) return;
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data:{ user } } = await supabase.auth.getUser();
   if (!user) {
     alert('로그인 후 이용할 수 있어요.');
     location.href = loginURL;
@@ -268,7 +279,7 @@ async function onVoteClick(e) {
  * 回帖展开/收起（点击 💬 按钮）
  * 대댓글 펼치기/접기 (💬 버튼)
  * ========================================= */
-async function onRepliesToggle(e) {
+async function onRepliesToggle(e){
   const t = e.target.closest('.replies-toggle');
   if (!t) return;
 
@@ -291,11 +302,11 @@ async function onRepliesToggle(e) {
     }
     box.classList.remove('hidden');
     box.removeAttribute('hidden');
-    t.setAttribute('aria-expanded', 'true');
+    t.setAttribute('aria-expanded','true');
   } else {
     // 收起 | 접기
     box.classList.add('hidden');
-    t.setAttribute('aria-expanded', 'false');
+    t.setAttribute('aria-expanded','false');
   }
 }
 
@@ -303,12 +314,12 @@ async function onRepliesToggle(e) {
  * 写回帖：事件委托（回帖表单在每个父评论里）
  * 대댓글 작성: 이벤트 위임 (부모 댓글별 폼)
  * ========================================= */
-async function onReplySubmit(e) {
+async function onReplySubmit(e){
   const form = e.target.closest('.reply-form');
   if (!form) return;
   e.preventDefault();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data:{ user } } = await supabase.auth.getUser();
   if (!user) { alert('로그인 후 이용할 수 있어요.'); location.href = loginURL; return; }
 
   const parentId = form.dataset.parent;
@@ -346,7 +357,7 @@ async function onReplySubmit(e) {
  * 加载 & 渲染回帖（竖向下拉 + 内嵌编辑框 + 我的投票高亮）
  * 대댓글 로딩/렌더링 (세로 펼침 + 내 투표 하이라이트)
  * ======================================================= */
-async function loadReplies(parentId, box) {
+async function loadReplies(parentId, box){
   // 取回帖列表 | 대댓글 목록 조회
   const { data: replies, error } = await supabase
     .from('Comments')
@@ -360,26 +371,26 @@ async function loadReplies(parentId, box) {
   }
 
   // 批量取用户资料 | 사용자 정보 일괄 조회
-  const uids = [...new Set((replies || []).map(r => r.user_id))];
+  const uids = [...new Set((replies||[]).map(r => r.user_id))];
   let uMap = new Map();
-  if (uids.length) {
+  if (uids.length){
     const { data: users } = await supabase
       .from(USERS_TABLE)
       .select(`${USER_PK_COL}, nickname, profile_image_url`)
       .in(USER_PK_COL, uids);
-    uMap = new Map((users || []).map(u => [u[USER_PK_COL], u]));
+    uMap = new Map((users||[]).map(u => [u[USER_PK_COL], u]));
   }
 
   // 取“我对这些回帖”的投票，用于高亮 | 내 대댓글 투표값 하이라이트용
   let voteMap = new Map();
-  if (CURRENT_USER_ID && replies?.length) {
+  if (CURRENT_USER_ID && replies?.length){
     const ids = replies.map(r => r.comment_id);
     const { data: myVotes } = await supabase
       .from('CommentVotes')
       .select('comment_id,value')
       .eq('user_id', CURRENT_USER_ID)
       .in('comment_id', ids);
-    voteMap = new Map((myVotes || []).map(v => [v.comment_id, v.value]));
+    voteMap = new Map((myVotes||[]).map(v => [v.comment_id, v.value]));
   }
 
   // 顶部：回帖编辑框（登录后显示）
@@ -395,29 +406,25 @@ async function loadReplies(parentId, box) {
     : `<div class="reply-login-hint">로그인 후 답글을 작성할 수 있어요.</div>`;
 
   // 列表项 | 목록 아이템
-  const items = (replies || []).map(r => {
+  const items = (replies||[]).map(r => {
     const u = uMap.get(r.user_id) || {};
-    const likeAct = voteMap.get(r.comment_id) === 1 ? 'active' : '';
+    const likeAct    = voteMap.get(r.comment_id) === 1  ? 'active' : '';
     const dislikeAct = voteMap.get(r.comment_id) === -1 ? 'active' : '';
     const avatar = (u.profile_image_url && typeof u.profile_image_url === 'string')
       ? u.profile_image_url
-      : `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(r.user_id || 'anon')}`;
+      : `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(r.user_id||'anon')}`;
 
     // 登录/本人禁投 UI 属性 | 로그인/본인 금지 UI 속성
     const needLogin = !CURRENT_USER_ID;
-    const isOwn = CURRENT_USER_ID && r.user_id === CURRENT_USER_ID;
-    const disable = needLogin || isOwn;
-    const titleTip = needLogin ? '로그인 후 이용할 수 있어요.' : (isOwn ? '본인 댓글에는 추천/비추천을 할 수 없어요.' : '');
-    const disAttr = disable ? `disabled aria-disabled="true" title="${titleTip}"` : '';
-    const disCls = disable ? ' disabled' : '';
+    const isOwn     = CURRENT_USER_ID && r.user_id === CURRENT_USER_ID;
+    const disable   = needLogin || isOwn;
+    const titleTip  = needLogin ? '로그인 후 이용할 수 있어요.' : (isOwn ? '본인 댓글에는 추천/비추천을 할 수 없어요.' : '');
+    const disAttr   = disable ? `disabled aria-disabled="true" title="${titleTip}"` : '';
+    const disCls    = disable ? ' disabled' : '';
 
     return `
       <article class="reply-card" data-id="${r.comment_id}" data-owner="${r.user_id}">
-        <div class="avatar">
-          <a href="profile.html?id=${r.user_id}">
-            <img src="${esc(avatar)}" alt="">
-          </a>
-        </div>
+        <div class="avatar"><img src="${esc(avatar)}" alt=""></div>
 
         <div class="reply-main">
           <div class="reply-user">${esc(u.nickname || '익명')}</div>
@@ -459,7 +466,7 @@ async function fetchAndRender({ append }) {
   const ascending = false;
 
   const from = page * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  const to   = from + PAGE_SIZE - 1;
 
   // 只取顶层（parent_comment_id IS NULL）
   // 상단 댓글만 조회 (parent_comment_id IS NULL)
@@ -485,7 +492,7 @@ async function fetchAndRender({ append }) {
       .from(USERS_TABLE)
       .select(`${USER_PK_COL}, nickname, profile_image_url`)
       .in(USER_PK_COL, userIds);
-    profileMap = new Map((users || []).map(u => [u[USER_PK_COL], u]));
+    profileMap = new Map((users||[]).map(u => [u[USER_PK_COL], u]));
   }
 
   // 我对“本页顶层评论”的投票（用于高亮）| 내 상단 댓글 투표값(하이라이트)
@@ -497,17 +504,17 @@ async function fetchAndRender({ append }) {
       .select('comment_id,value')
       .eq('user_id', CURRENT_USER_ID)
       .in('comment_id', ids);
-    topVotesMap = new Map((myVotes || []).map(v => [v.comment_id, v.value]));
+    topVotesMap = new Map((myVotes||[]).map(v => [v.comment_id, v.value]));
   }
 
   // 合并并渲染 | 병합 후 렌더
   const rows = (comments || []).map(r => {
     const u = profileMap.get(r.user_id);
     const nickname = u?.nickname || ('User-' + String(r.user_id || '').slice(0, 8));
-    const avatar = (u?.profile_image_url && typeof u.profile_image_url === 'string')
+    const avatar   = (u?.profile_image_url && typeof u.profile_image_url === 'string')
       ? u.profile_image_url
       : `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(r.user_id || 'anon')}`;
-    const myVote = topVotesMap.get(r.comment_id) || 0; // 1 / -1 / 0
+    const myVote   = topVotesMap.get(r.comment_id) || 0; // 1 / -1 / 0
     return renderItem({ ...r, nickname, avatar, myVote });
   });
 
@@ -535,30 +542,28 @@ function renderItem(r) {
   ).join('');
 
   const timeTxt = r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '';
-  const like = r.like_count ?? 0;
+  const like    = r.like_count ?? 0;
   const dislike = r.dislike_count ?? 0;
-  const recYes = Number(r.is_recommended) === 1;
+  const recYes  = Number(r.is_recommended) === 1;
 
   // 未登录/本人 禁投 | 미로그인/본인 금지
-  const needLogin = !CURRENT_USER_ID;
-  const isOwn = CURRENT_USER_ID && r.user_id === CURRENT_USER_ID;
+  const needLogin   = !CURRENT_USER_ID;
+  const isOwn       = CURRENT_USER_ID && r.user_id === CURRENT_USER_ID;
   const disableVote = needLogin || isOwn;
   const reason = needLogin
     ? '로그인 후 이용할 수 있어요.'
     : '본인 댓글에는 추천/비추천을 할 수 없어요.';
   const disAttr = disableVote ? `disabled aria-disabled="true" title="${reason}"` : '';
-  const disCls = disableVote ? ' disabled' : '';
+  const disCls  = disableVote ? ' disabled' : '';
 
-  const likeAct = r.myVote === 1 ? 'active' : '';
+  const likeAct    = r.myVote === 1  ? 'active' : '';
   const dislikeAct = r.myVote === -1 ? 'active' : '';
 
   return `
     <article class="review-card" data-id="${r.comment_id}" data-owner="${r.user_id}">
       <!-- 左：头像 | 좌: 아바타 -->
       <div class="avatar">
-        <a href="profile.html?id=${r.user_id}">
-          <img src="${esc(r.avatar)}" alt="" />
-        </a>
+        <img src="${esc(r.avatar)}" alt="" />
       </div>
 
       <!-- 中：昵称/时间/内容/投票 + 回帖按钮 | 중앙: 닉네임/시간/내용/투표 + 대댓글 버튼 -->
@@ -621,4 +626,4 @@ function esc(s) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 }
-function fail(msg) { setError(msg); }
+function fail(msg){ setError(msg); }

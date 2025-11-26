@@ -1,358 +1,270 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>갓겜판독기 안내</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
     <style>
-        /*배경창*/
-        .window1 {
-            position: relative;
-            width: min(96vw, calc(var(--center-w) + 2*var(--side-w) + 2*var(--gap) + 2*var(--edge-pad)));
-            padding-block: 16px;
-            padding-inline: 0;
-            margin: 40px 80px;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            background: #fff;
-            box-shadow: 0 20px 48px rgba(0, 0, 0, .06);
+        /* =========================================
+           1. 핵심 변수 및 기본 설정 (Core Variables)
+           ========================================= */
+        :root {
+            /* --- 팝 아트 컬러 팔레트 --- */
+            --bg-color: #FFDE59;       /* 배경: 쨍한 노란색 */
+            --card-bg: #FFFFFF;        /* 카드 흰색 */
+            --ink: #000000;            /* 텍스트: 완전 검정 */
+            --ink-2: #333333;          /* 보조 텍스트 */
+            
+            /* --- 섹션별 테마 컬러 --- */
+            --theme-blue: #54C1FF;     /* 할 수 있는 일 */
+            --theme-red: #FF4D4D;      /* 할 수 없는 일 */
+            --theme-pink: #FF90E8;     /* 추천 대상 */
+            
+            --line: #000000;           /* 테두리 색상 */
+            --border-w: 3px;           /* 굵은 테두리 */
+            --shadow-hard: 6px 6px 0px 0px #000000; /* 딱딱한 그림자 */
+            --radius: 0px;             /* 각진 모서리 */
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--ink);
+            /* 만화책 같은 도트 패턴 배경 */
+            background-image: radial-gradient(#000 1px, transparent 1px);
+            background-size: 20px 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* =========================================
+           2. 메인 컨테이너 (Main Card)
+           ========================================= */
+        .info-container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            border: var(--border-w) solid var(--line);
+            box-shadow: var(--shadow-hard);
+            padding: 40px;
             text-align: center;
+            position: relative;
         }
 
-        /*제목 테스트 CSS rainbow형태*/
-        .rainbow {
-            font: 900 64px/1.1 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        /* 상단 타이틀 */
+        .main-title {
+            font-size: 48px;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 0 0 40px 0;
+            text-shadow: 3px 3px 0 #ddd;
+            line-height: 1.2;
             display: inline-block;
-            /* 多行也能用 */
-            background: linear-gradient(90deg,
-                    #ff004c, #ff8a00, #ffcd00, #00e676, #00b0ff, #6200ea, #ff004c);
-            background-size: 400% 100%;
-            /* 放大以便滚动 */
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            /* 兼容 Safari */
-            color: transparent;
-            animation: rainbow-move 8s linear infinite;
-            font-family: "Nanum Pen Script", "Noto Sans KR", cursive;
+            border-bottom: 4px solid var(--line);
+            padding-bottom: 10px;
         }
 
-        @keyframes rainbow-move {
-            from {
-                background-position: 0% 0;
-            }
-
-            to {
-                background-position: 400% 0;
-            }
+        /* =========================================
+           3. 섹션 스타일 (Section Styles)
+           ========================================= */
+        .section-group {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 48px; /* 섹션 간 간격 */
         }
 
-        /* 关怀：系统设置“减少动效”时停止动画 */
-        @media (prefers-reduced-motion: reduce) {
-            .rainbow {
-                animation: none;
-            }
+        .section-item {
+            text-align: left;
         }
 
-        .title--neon {
-            color: #14b8a6;
-            text-shadow:
-                0 1px 0 #fff,
-                0 0 12px rgba(5, 255, 59, 0.45),
-                0 0 28px rgba(5, 255, 59, 0.45);
-            font-size: 250%;
-            font-family: "Nanum Pen Script", "Noto Sans KR", cursive;
+        /* 섹션 제목 (스티커 스타일) */
+        .section-title {
+            font-size: 24px;
+            font-weight: 900;
+            display: inline-block;
+            padding: 8px 16px;
+            border: 2px solid var(--line);
+            margin-bottom: 20px;
+            box-shadow: 3px 3px 0 var(--line);
+            transform: rotate(-1deg); /* 살짝 기울임 */
         }
 
-        /*첫번째 뭐할수 있을까 부분 표를 정렬CSS*/
-        /* ===== 亮眼列表（图标版） ===== */
+        /* 색상별 변형 */
+        .title-blue { background: var(--theme-blue); color: #000; }
+        .title-red { background: var(--theme-red); color: #fff; transform: rotate(1deg); }
+        .title-pink { background: var(--theme-pink); color: #000; }
+
+        /* =========================================
+           4. 카드 그리드 (Feature List)
+           ========================================= */
         .feature-list {
             list-style: none;
             padding: 0;
-            margin: 24px auto 8px;
-            display: inline-flex;
-            flex-direction: column;
-            gap: 14px;
-            text-align: left;
-            max-width: 34rem;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
         }
 
-        .feature-list li {
-            position: relative;
-            padding: 12px 16px 12px 56px;
-            /* 左侧留给图标 */
-            font: 600 20px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
-            color: #111827;
-            background: linear-gradient(180deg, rgba(255, 255, 255, .95), rgba(255, 255, 255, .90));
-            border: 1px solid #e5e7eb;
-            border-left: 6px solid var(--accent, #60a5fa);
-            /* 每项不同的强调色 */
-            border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(17, 24, 39, .06);
-            transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
-        }
-
-        .feature-list li:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 28px rgba(17, 24, 39, .12);
+        .feature-item {
+            border: 2px solid var(--line);
+            padding: 16px;
             background: #fff;
-        }
-
-        /* 图标：使用 emoji，兼容好、无需外部资源 */
-        .feature-list.icons li::before {
-            content: var(--emoji, "•");
-            /* 每项自定义 */
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 26px;
-            line-height: 1;
-            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .15));
-        }
-
-        /* ul1번*/
-        .feature-list .i-info {
-            --emoji: "🎮";
-            --accent: #0ea5e9;
-        }
-
-        /* 游戏信息 */
-        .feature-list .i-review {
-            --emoji: "⭐";
-            --accent: #f59e0b;
-        }
-
-        /* 评价发布 */
-        .feature-list .i-comment {
-            --emoji: "💬";
-            --accent: #6366f1;
-        }
-
-        /* 评论 */
-        .feature-list .i-guide {
-            --emoji: "📝";
-            --accent: #10b981;
-        }
-
-        /* 攻略 */
-        .feature-list .i-dict {
-            --emoji: "📚";
-            --accent: #8b5cf6;
-        }
-
-        /* 词典/资料分享 */
-
-        /* 减少动效模式 */
-        @media (prefers-reduced-motion: reduce) {
-            .feature-list li {
-                transition: none;
-            }
-        }
-
-        .ol-reset {
-            list-style: none;
-            /* 不显示编号 */
-            padding-left: 0;
-            /* 去掉默认缩进 */
-            margin: 0;
-        }
-
-        .ol-reset>li {
-            margin: 0;
-        }
-
-        /* --- 红色霓虹标题（与 title--neon 风格一致） --- */
-        /*이부분은 할수 없는 일 CSS양식*/
-        .title--neon-red {
-            color: #ef4444;
-            text-shadow:
-                0 1px 0 #fff,
-                0 0 12px rgba(239, 68, 68, .45),
-                0 0 28px rgba(239, 68, 68, .35);
-            font-size: 250%;
-            font-family: "Nanum Pen Script", "Noto Sans KR", cursive;
-        }
-
-        /* --- ul2번 --- */
-        .feature-list .i-politics {
-            --emoji: "🏛️";
-            --accent: #ef4444;
-        }
-
-        /* 정치 이야기 */
-        .feature-list .i-adult {
-            --emoji: "🔞";
-            --accent: #f43f5e;
-        }
-
-        /* 음란물·폭력물 */
-        .feature-list .i-abuse {
-            --emoji: "🤬";
-            --accent: #fb7185;
-        }
-
-        /* 언어폭력 */
-        .feature-list .i-toxic {
-            --emoji: "🚫";
-            --accent: #ef4444;
-        }
-
-        /* 악성 댓글 */
-
-        .notice-pill {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 10px;
-            margin: 48px auto;
-            padding: 10px 16px;
-            border-radius: 999px;
-            background: color-mix(in srgb, #10b981 12%, #fff);
-            border: 1px solid color-mix(in srgb, #10b981 38%, #fff);
-            box-shadow: 0 6px 16px rgba(16, 185, 129, .18);
-            font: 600 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
-            color: #065f46;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+            transition: transform 0.1s, box-shadow 0.1s;
         }
 
-        .notice-pill .i {
-            width: 28px;
-            height: 28px;
-            border-radius: 999px;
+        .feature-item:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 var(--line);
+            background: #f9f9f9;
+        }
+
+        /* 아이콘 스타일 */
+        .emoji {
+            font-size: 28px;
+            width: 40px;
+            height: 40px;
             display: grid;
             place-items: center;
-            background: #ecfdf5;
-            box-shadow: inset 0 0 0 1px #a7f3d0;
+            border: 2px solid var(--line);
+            background: #fff;
+            flex-shrink: 0;
         }
 
-        /* ul3번 */
-        .feature-list .i-buyer {
-            --emoji: "🛒";
-            --accent: #06b6d4;
+        /* 테마별 아이콘 배경색 */
+        .theme-blue .emoji { background: #E0F2FE; }
+        .theme-red .emoji { background: #FEE2E2; }
+        .theme-pink .emoji { background: #FAE8FF; }
+
+        /* =========================================
+           5. 하단 버튼 및 공지 (Footer)
+           ========================================= */
+        .footer-area {
+            margin-top: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
         }
 
-        /* 구매고민 */
-        .feature-list .i-match {
-            --emoji: "🤝";
-            --accent: #a78bfa;
-        }
-
-        /* 동호찾기 */
-        .feature-list .i-strategy {
-            --emoji: "📝";
-            --accent: #10b981;
-        }
-
-        /* 공략작성/찾기 */
-        .feature-list .i-highlight {
-            --emoji: "🎬";
-            --accent: #f43f5e;
-        }
-
-        /* 하이라이트 */
-        .feature-list .i-opinion {
-            --emoji: "🗣️";
-            --accent: #22c55e;
-        }
-
-        /* 게임평가 */
-
-        .title--neon-yellow {
-            color: #b9c519;
-            text-shadow:
-                0 1px 0 #fff,
-                0 0 12px rgba(240, 237, 36, 0.873),
-                0 0 28px rgba(240, 237, 36, 0.873);
-            font-size: 250%;
-            font-family: "Nanum Pen Script", "Noto Sans KR", cursive;
-        }
-
-        .cute-btn {
-            background: linear-gradient(135deg, #ffc1cc, #ffecb3);
-            border: none;
-            border-radius: 50px;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #555;
-            box-shadow: 0 6px 0 #ffb6c1;
+        /* 홈으로 버튼 */
+        .home-btn {
+            background: var(--theme-blue);
+            color: #000;
+            border: 3px solid var(--line);
+            padding: 16px 40px;
+            font-size: 20px;
+            font-weight: 900;
             cursor: pointer;
-            transition: all 0.15s ease;
-            position: relative;
+            box-shadow: 5px 5px 0 var(--line);
+            transition: all 0.1s;
+            text-transform: uppercase;
         }
 
-        /* 눌렸을 때 효과 */
-        .cute-btn:active {
-            transform: translateY(6px);
-            box-shadow: 0 0 0 #ffb6c1;
+        .home-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0 var(--line);
+            background: #40b0ee;
         }
 
-        /* 마우스 올렸을 때 반짝 효과 */
-        .cute-btn::after {
-            content: '';
-            position: absolute;
-            top: 6px;
-            left: 6px;
-            right: 6px;
-            bottom: 6px;
-            border-radius: 50px;
-            background: rgba(255, 255, 255, 0.4);
-            opacity: 0;
-            transition: opacity 0.3s;
+        .home-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--line);
         }
 
-        .cute-btn:hover::after {
-            opacity: 1;
+        /* 공지사항 박스 */
+        .notice-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: #ECFDF5;
+            border: 2px solid var(--line);
+            padding: 12px 24px;
+            font-weight: 700;
+            color: #065F46;
+            box-shadow: 3px 3px 0 var(--line);
+        }
+
+        .notice-box .i {
+            font-size: 24px;
+        }
+
+        /* 반응형 */
+        @media (max-width: 600px) {
+            .info-container { padding: 24px; }
+            .main-title { font-size: 32px; }
+            .feature-list { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 
 <body>
-    <!--이페이지는 홈페이지 -> 정보(이 사이트 소개하는 페이지) -->
-    <section class="window1">
-        <div>
-            <h2 class="rainbow">Welcome to 갓겜판독기</h2><img href=""> <!--제목 + 사이트 아이콘-->
-            <ol class="ol-reset">
-                <li>
-                    <h2 class="title--neon">이 사이트는 뭐할 수 있을까?</h2>
-                    <ul class="feature-list icons">
-                        <li class="i-info">게임정보 열람</li>
-                        <li class="i-review">게임평가 발표</li>
-                        <li class="i-comment">타인 평가 댓글</li>
-                        <li class="i-guide">게임공략 작성/보기</li>
-                        <li class="i-dict">게임사전 나누기</li>
-                    </ul>
-                </li>
-                <li>
-                    <h2 class="title--neon-red">이 사이트에서 할 수 없는 일?</h2>
-                    <ul class="feature-list icons">
-                        <li class="i-politics">정치 이야기</li>
-                        <li class="i-adult">음란물·폭력물</li>
-                        <li class="i-abuse">언어폭력</li>
-                        <li class="i-toxic">악성 댓글</li>
-                    </ul>
-                </li>
-                <li>
-                    <h2 class="title--neon-yellow">이 사이트가 특히 잘 맞는 이용자</h2>
-                    <ul class="feature-list icons">
-                        <li class="i-buyer">게임을 살지 말지 고민 중인 플레이어</li>
-                        <li class="i-match">비슷한 게임 취향의 게이머를 찾고 싶은 플레이어</li>
-                        <li class="i-strategy">게임 공략을 만들거나 찾고 싶은 플레이어</li>
-                        <li class="i-highlight">하이라이트(명장면)을 공유하고 싶은 플레이어</li>
-                        <li class="i-opinion">게임에 대한 의견을 공유하고 싶은 플레이어</li>
-                    </ul>
-                </li>
-            </ol>
-            <button class="cute-btn" onclick="location.href='./home.html'">홈으로</button>
-        </div>
-        <p class="notice-pill"><span class="i">🤝</span>좋은 커뮤니티 환경을 유지하기 위해 같이 노력하시기 바랍니다.</p>
-        
-        
-        <!--<p><b>사이트 작성자</b> : 강철&emsp;박민서&emsp;조성범</p> -->
 
+    <section class="info-container">
+        <h1 class="main-title">Welcome to<br>갓겜판독기</h1>
+
+        <ol class="section-group">
+            
+            <li class="section-item theme-blue">
+                <div class="section-title title-blue">이 사이트는 뭐할 수 있을까?</div>
+                <ul class="feature-list">
+                    <li class="feature-item"><span class="emoji">🎮</span> 게임정보 열람</li>
+                    <li class="feature-item"><span class="emoji">⭐</span> 게임평가 발표</li>
+                    <li class="feature-item"><span class="emoji">💬</span> 타인 평가 댓글</li>
+                    <li class="feature-item"><span class="emoji">📝</span> 게임공략 작성/보기</li>
+                    <li class="feature-item"><span class="emoji">📚</span> 게임사전 나누기</li>
+                </ul>
+            </li>
+
+            <li class="section-item theme-red">
+                <div class="section-title title-red">이 사이트에서 할 수 없는 일?</div>
+                <ul class="feature-list">
+                    <li class="feature-item"><span class="emoji">🏛️</span> 정치 이야기</li>
+                    <li class="feature-item"><span class="emoji">🔞</span> 음란물·폭력물</li>
+                    <li class="feature-item"><span class="emoji">🤬</span> 언어폭력</li>
+                    <li class="feature-item"><span class="emoji">🚫</span> 악성 댓글</li>
+                </ul>
+            </li>
+
+            <li class="section-item theme-pink">
+                <div class="section-title title-pink">이 사이트가 특히 잘 맞는 이용자</div>
+                <ul class="feature-list">
+                    <li class="feature-item"><span class="emoji">🛒</span> 구매 고민 중인 플레이어</li>
+                    <li class="feature-item"><span class="emoji">🤝</span> 취향 맞는 친구 찾기</li>
+                    <li class="feature-item"><span class="emoji">📝</span> 공략 제작/검색</li>
+                    <li class="feature-item"><span class="emoji">🎬</span> 명장면 공유</li>
+                    <li class="feature-item"><span class="emoji">🗣️</span> 의견 공유</li>
+                </ul>
+            </li>
+
+        </ol>
+
+        <div class="footer-area">
+            <button class="home-btn" onclick="location.href='./home.html'">홈으로 가기</button>
+            
+            <div class="notice-box">
+                <span class="i">🤝</span>
+                좋은 커뮤니티 환경을 유지하기 위해 같이 노력합시다!
+            </div>
+        </div>
 
     </section>
-</body>
 
+</body>
 </html>

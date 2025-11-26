@@ -4,172 +4,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프로필</title>
+    <title>내 프로필</title>
     <style>
+        /* --- Neo-Brutalism (팝 아트) 테마 변수 --- */
+        :root {
+            --bg-color: #FFDE59;       /* 쨍한 노란색 배경 */
+            --card-bg: #FFFFFF;        /* 흰색 카드 */
+            --border-color: #000000;   /* 완전 검은색 테두리 */
+            --accent-pink: #FF90E8;    /* 포인트 핑크 */
+            --accent-blue: #54C1FF;    /* 포인트 블루 */
+            --shadow-hard: 6px 6px 0px 0px #000000; /* 흐림 없는 딱딱한 그림자 */
+            --shadow-hover: 3px 3px 0px 0px #000000; /* 눌렀을 때 그림자 */
+            --border-width: 3px;       /* 굵은 테두리 */
+        }
+
         body {
             min-height: 100vh;
+            background-color: var(--bg-color);
+            /* 모눈종이 같은 배경 패턴 추가 */
+            background-image: radial-gradient(#000 1px, transparent 1px);
+            background-size: 20px 20px;
+            
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
             display: flex;
             justify-content: center;
-            align-items: center;
-            background: #97b3e1;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+            padding: 40px 20px;
+            color: var(--border-color);
         }
 
-        .profile-card {
-            width: min(92vw, 600px);
-            padding: 28px 24px;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-
-            display: flex;
-            align-items: flex-start;
-            /* 세로 상단 정렬 */
-            gap: 16px;
-            /* 이미지와 텍스트 사이 */
-            justify-content: center;
-            /* 카드 전체는 가운데 */
-        }
-
-        /* 프로필 이미지 */
-        .profile-img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border: 2px solid #d7dbe0;
-            flex-shrink: 0;
-            background-color: white;
-        }
-
-        /* 텍스트 블록 */
-        .profile-info {
+        /* 메인 컨테이너 */
+        .brutal-container {
+            width: 100%;
+            max-width: 800px;
             display: flex;
             flex-direction: column;
-            /* 위->아래로 쌓기 */
-            justify-content: flex-start;
-            /* 텍스트 블록 위쪽부터 시작 */
+            gap: 24px;
         }
 
-        .profile-info h2 {
-            margin: 0 0 6px 0;
-            font-size: 20px;
+        /* 공통 카드 스타일 (굵은 테두리 + 하드 쉐도우) */
+        .brutal-card {
+            background: var(--card-bg);
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: var(--shadow-hard);
+            padding: 30px;
+            border-radius: 0; /* 둥근 모서리 제거 (각진 느낌) */
+            /* 약간의 둥근 느낌을 원하면 border-radius: 12px 정도 주어도 됨 */
         }
 
-        .profile-info .info {
-            font-size: 16px;
-            color: #333;
-        }
-
-        button {
-            padding: 10px 12px;
-            background: rgb(69, 218, 218);
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        .nickname-row {
+        /* 1. 상단 프로필 섹션 */
+        .profile-header {
             display: flex;
-            /* 닉네임과 버튼 가로 정렬 */
             align-items: center;
-            /* 수직 중앙 맞춤 */
-            gap: 8px;
-            /* 닉네임과 버튼 사이 간격 */
+            gap: 24px;
+            background-color: #fff;
         }
 
-        .nickname-row h2 {
-            margin: 0;
-            font-size: 20px;
-        }
-
-        .nickname-row button {
-            padding: 4px 8px;
-            font-size: 14px;
-            border: none;
-            border-radius: 6px;
-            background-color: #4c8bf5;
-            color: white;
-            cursor: pointer;
-        }
-
-        .nickname-row button:hover {
-            background-color: #3a6fd8;
-        }
-
-        @media (max-width: 360px) {
-            .profile-card {
-                padding: 18px 14px;
-            }
-        }
-
-        .intro-card {
-            background: linear-gradient(135deg, #f9f9f9, #e6e0e0);
-            padding: 20px;
-            border-radius: 16px;
-            color: #333;
-            font-weight: bold;
-            text-align: left;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-            margin-bottom: 20px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .game_img {
-            width: 70%;
-            height: 70%;
-            border-radius: 8px;
+        .profile-img {
+            width: 110px;
+            height: 110px;
             object-fit: cover;
-            flex-shrink: 0;
-            /* 이미지 크기 유지 */
+            border: var(--border-width) solid var(--border-color);
+            background-color: #eee;
+            /* 이미지도 그림자 효과 */
+            box-shadow: 4px 4px 0px #000; 
         }
 
-        /* 게임 타이틀 */
-        .game {
-            font-size: 22px;
-            font-weight: 700;
-            color: #4a4a4a;
-            line-height: 1.2;
+        .header-info {
+            flex: 1;
         }
 
-        /* 별점 */
-        .stars {
+        .nickname {
+            font-size: 32px;
+            font-weight: 900; /* 아주 굵게 */
+            margin: 0 0 4px 0;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+
+        .email {
             font-size: 16px;
-            color: #f5c518;
-            line-height: 1.2;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: monospace; /* 타자기 느낌 폰트 */
         }
 
-        a.no-underline {
+        /* 버튼 그룹 */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: var(--border-width) solid var(--border-color);
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px 0px #000; /* 버튼 그림자 */
+            transition: all 0.1s;
+            text-transform: uppercase;
+        }
+
+        /* 메인 버튼 (파란색) */
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: var(--border-color);
+        }
+
+        .btn-primary:hover {
+            transform: translate(2px, 2px); /* 눌리는 효과 */
+            box-shadow: 2px 2px 0px 0px #000;
+        }
+
+        /* 서브 버튼 (흰색) */
+        .btn-secondary {
+            background-color: #fff;
+            color: var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px #000;
+            background-color: #f0f0f0;
+        }
+
+        /* 2. 섹션 라벨 (태그 스타일) */
+        .section-label {
+            display: inline-block;
+            background-color: var(--border-color);
+            color: #fff;
+            padding: 8px 16px;
+            font-weight: 900;
+            font-size: 14px;
+            margin-bottom: 16px;
+            transform: rotate(-1deg); /* 살짝 기울여서 장난스러운 느낌 */
+        }
+
+        /* 자기소개 텍스트 */
+        .bio-text {
+            font-size: 16px;
+            line-height: 1.6;
+            font-weight: 500;
+            border: 2px dashed var(--border-color); /* 점선 테두리 */
+            padding: 16px;
+            background-color: #fffaf0;
+        }
+
+        /* 3. 리뷰 리스트 (카드 그리드) */
+        .review-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        /* 개별 게임 카드 */
+        .game-card {
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: 4px 4px 0px 0px #000;
             text-decoration: none;
-            color: inherit;
+            color: var(--border-color);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .game-card:hover {
+            transform: translate(-2px, -2px); /* 위로 솟아오름 */
+            box-shadow: 8px 8px 0px 0px #000; /* 그림자가 길어짐 */
+            background-color: var(--accent-pink); /* 호버 시 핑크색 배경 */
+        }
+
+        .card-img-wrapper {
+            width: 100%;
+            height: 140px;
+            border-bottom: var(--border-width) solid var(--border-color);
+            background: #fff;
+        }
+
+        .card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-info {
+            padding: 12px;
+        }
+
+        .game-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rating {
+            font-size: 14px;
+            font-weight: 700;
+            background-color: #000;
+            color: #FFDE59; /* 검은 바탕에 노란 별 */
+            display: inline-block;
+            padding: 2px 6px;
+        }
+
+        /* 반응형 (모바일) */
+        @media (max-width: 600px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .review-grid {
+                grid-template-columns: 1fr; 
+            }
+
+            .game-card {
+                flex-direction: row;
+                height: 90px;
+            }
+
+            .card-img-wrapper {
+                width: 90px;
+                height: 100%;
+                border-bottom: none;
+                border-right: var(--border-width) solid var(--border-color);
+            }
+
+            .card-info {
+                justify-content: center;
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="profile-card">
-        <img id="profile_img" class="profile-img" src="/default_profile.png" alt="프로필 사진">
-        <div class="profile-info">
-            <div class="nickname-row">
-                <h2 id="nickname">사용자</h2>
-                <button id="editProfileBtn">내정보 수정</button>
-                <button id="logout">로그아웃</button>
-            </div>
-            <div class="info" id="email">이메일: example@example.com</div>
-            <div class="intro-card">
-                <div class="info" id="showMyself">자기소개없음</div>
-            </div>
-            <div class="intro-card">
-                <div class="info">내가 작성한 평가</div>
-                <div class="rate-list" id="rateList"></div>
+
+    <div class="brutal-container">
+        
+        <div class="brutal-card profile-header">
+            <img id="profile_img" class="profile-img" src="/default_profile.png" alt="프로필 사진">
+            
+            <div class="header-info">
+                <h2 id="nickname" class="nickname">PlayerOne</h2>
+                <div id="email" class="email">example@gamecritic.com</div>
+                
+                <div class="action-buttons">
+                    <button id="editProfileBtn" class="btn btn-primary">내 정보 수정</button>
+                    <button id="logout" class="btn btn-secondary">로그아웃</button>
+                </div>
             </div>
         </div>
+
+        <div class="brutal-card content-section">
+            <div class="section-label">MY BIO (자기소개)</div>
+            <div id="showMyself" class="bio-text">
+                작성된 자기소개가 없습니다. 자기소개를 입력해보세요!
+            </div>
+            
+            <br><br>
+
+            <div class="section-label" style="background-color: var(--accent-pink); color: black;">MY REVIEWS</div>
+            <div id="rateList" class="review-grid">
+                </div>
+        </div>
+
     </div>
+
     <script type="module" src="/scripts/profile.js"></script>
 </body>
-
 </html>

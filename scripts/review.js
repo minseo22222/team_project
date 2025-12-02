@@ -414,7 +414,7 @@ async function loadReplies(parentId, box){
       ? u.profile_image_url
       : `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(r.user_id||'anon')}`;
 
-    // 登录/本人禁投 UI 属性 | 로그인/본인 금지 UI 속성
+    // 로그인/본인 금지 UI 속성
     const needLogin = !CURRENT_USER_ID;
     const isOwn     = CURRENT_USER_ID && r.user_id === CURRENT_USER_ID;
     const disable   = needLogin || isOwn;
@@ -422,14 +422,35 @@ async function loadReplies(parentId, box){
     const disAttr   = disable ? `disabled aria-disabled="true" title="${titleTip}"` : '';
     const disCls    = disable ? ' disabled' : '';
 
+    // ★ 프로필 페이지 링크 (유저 ID로 이동)
+    const profileHref = r.user_id
+      ? `./profile.html?id=${encodeURIComponent(r.user_id)}`
+      : null;
+
     return `
       <article class="reply-card" data-id="${r.comment_id}" data-owner="${r.user_id}">
-        <div class="avatar"><img src="${esc(avatar)}" alt=""></div>
+        <div class="avatar">
+          ${
+            profileHref
+              ? `<a href="${profileHref}" class="profile-link">
+                   <img src="${esc(avatar)}" alt="">
+                 </a>`
+              : `<img src="${esc(avatar)}" alt="">`
+          }
+        </div>
 
         <div class="reply-main">
-          <div class="reply-user">${esc(u.nickname || '익명')}</div>
+          <div class="reply-user">
+            ${
+              profileHref
+                ? `<a href="${profileHref}" class="profile-name-link">${esc(u.nickname || '익명')}</a>`
+                : `${esc(u.nickname || '익명')}`
+            }
+          </div>
           <p class="reply-content">${esc(r.content || '')}</p>
-          <time class="reply-time">${r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : ''}</time>
+          <time class="reply-time">
+            ${r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : ''}
+          </time>
         </div>
 
         <div class="reply-actions-top">
@@ -534,6 +555,7 @@ async function fetchAndRender({ append }) {
 
 /* =====================================================
  * 单条顶层评论模板 | 상단 댓글 템플릿
+ *  ※ 여기서 아바타/닉네임을 프로필 링크로 감쌈
  * ===================================================== */
 function renderItem(r) {
   const starsNum = Number(r.rating || 0);
@@ -546,7 +568,11 @@ function renderItem(r) {
   const dislike = r.dislike_count ?? 0;
   const recYes  = Number(r.is_recommended) === 1;
 
-  // 未登录/本人 禁投 | 미로그인/본인 금지
+  // 프로필 페이지 링크 (유저 아이디로 이동)
+  const hasUser      = !!r.user_id;
+  const profileHref  = hasUser ? `./profile.html?id=${encodeURIComponent(r.user_id)}` : null;
+
+  // 미로그인/본인 투표 금지
   const needLogin   = !CURRENT_USER_ID;
   const isOwn       = CURRENT_USER_ID && r.user_id === CURRENT_USER_ID;
   const disableVote = needLogin || isOwn;
@@ -561,15 +587,27 @@ function renderItem(r) {
 
   return `
     <article class="review-card" data-id="${r.comment_id}" data-owner="${r.user_id}">
-      <!-- 左：头像 | 좌: 아바타 -->
+      <!-- 좌: 아바타 (프로필 링크) -->
       <div class="avatar">
-        <img src="${esc(r.avatar)}" alt="" />
+        ${
+          profileHref
+            ? `<a href="${profileHref}" class="profile-link">
+                 <img src="${esc(r.avatar)}" alt="">
+               </a>`
+            : `<img src="${esc(r.avatar)}" alt="">`
+        }
       </div>
 
-      <!-- 中：昵称/时间/内容/投票 + 回帖按钮 | 중앙: 닉네임/시간/내용/투표 + 대댓글 버튼 -->
+      <!-- 중앙: 닉네임/시간/내용/투표 + 대댓글 버튼 -->
       <div class="review-meta">
         <div class="review-headline">
-          <strong class="review-user">${esc(r.nickname)}</strong>
+          <strong class="review-user">
+            ${
+              profileHref
+                ? `<a href="${profileHref}" class="profile-name-link">${esc(r.nickname)}</a>`
+                : `${esc(r.nickname)}`
+            }
+          </strong>
           <time class="review-time" datetime="${r.created_at || ''}">${esc(timeTxt)}</time>
         </div>
 
@@ -583,18 +621,17 @@ function renderItem(r) {
             👎 <span class="count">${dislike}</span>
           </button>
 
-          <!-- 回帖开关按钮 / 대댓글 토글 버튼 -->
+          <!-- 대댓글 토글 버튼 -->
           <button class="replies-toggle" data-id="${r.comment_id}" aria-expanded="false" title="답글 보기">
             💬 <span class="reply-count">${r.reply_count || 0}</span>
           </button>
         </div>
 
-        <!-- 回帖列表容器：默认隐藏（用 .hidden 控制） -->
-        <!-- 대댓글 영역: 기본 숨김 (.hidden 제어) -->
+        <!-- 대댓글 영역 -->
         <div class="replies hidden" id="replies-${r.comment_id}"></div>
       </div>
 
-      <!-- 右：推荐与星级 | 우: 추천/별점 -->
+      <!-- 우: 추천/별점 -->
       <aside class="review-side">
         <div class="rec-icon ${recYes ? 'rec-yes' : 'rec-no'}" title="${recYes ? '추천' : '비추천'}">
           ${recYes ? '👍' : '👎'}

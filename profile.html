@@ -25,20 +25,16 @@
         body {
             min-height: 100vh;
             background-color: var(--bg-color);
-            /* 모눈종이 같은 배경 패턴 */
             background-image: radial-gradient(#000 1px, transparent 1px);
             background-size: 20px 20px;
             
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            /* [수정] flex 제거 -> block으로 변경하여 헤더가 100% 차지하게 함 */
             display: block; 
             color: var(--border-color);
         }
 
-        /* =========================================
-           헤더 스타일 (100% 너비 보장)
-           ========================================= */
+        /* 헤더 */
         header, .fixed-header {
             position: sticky;
             top: 0;
@@ -93,7 +89,6 @@
         .actions { display: flex; gap: 12px; align-items: center; position: relative; }
         #user_profile { width: 36px; height: 36px; border: 2px solid #000; background: #eee; border-radius: 50%; cursor: pointer; }
         
-        /* 드롭다운 메뉴 */
         .menu {
             position: absolute; right: 0; top: calc(100% + 10px);
             width: 140px; background: #fff; border: 2px solid #000;
@@ -105,10 +100,7 @@
         .menu li:last-child { border-bottom: none; }
         .menu li:hover { background: var(--brand); color: #fff; }
 
-        /* =========================================
-           프로필 페이지 스타일
-           ========================================= */
-        /* [수정] 메인 컨테이너: margin auto로 중앙 정렬 */
+        /* 프로필 페이지 */
         .brutal-container {
             width: 100%;
             max-width: 800px;
@@ -116,10 +108,9 @@
             flex-direction: column;
             gap: 24px;
             padding: 20px;
-            margin: 40px auto; /* 상하 40px, 좌우 자동(중앙정렬) */
+            margin: 40px auto;
         }
 
-        /* 공통 카드 스타일 */
         .brutal-card {
             background: var(--card-bg);
             border: var(--border-width) solid var(--border-color);
@@ -128,7 +119,6 @@
             border-radius: 0;
         }
 
-        /* 상단 프로필 */
         .profile-header {
             display: flex;
             align-items: center;
@@ -156,7 +146,6 @@
             font-family: monospace;
         }
 
-        /* 버튼 그룹 */
         .action-buttons { display: flex; gap: 12px; }
 
         .btn {
@@ -173,28 +162,24 @@
         .btn-secondary { background-color: #fff; color: var(--border-color); }
         .btn-secondary:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px 0px #000; background-color: #f0f0f0; }
 
-        /* 섹션 라벨 */
         .section-label {
             display: inline-block; background-color: var(--border-color); color: #fff;
             padding: 8px 16px; font-weight: 900; font-size: 14px; margin-bottom: 16px;
             transform: rotate(-1deg);
         }
 
-        /* 자기소개 */
         .bio-text {
             font-size: 16px; line-height: 1.6; font-weight: 500;
             border: 2px dashed var(--border-color); padding: 16px;
             background-color: #fffaf0;
         }
 
-        /* 리뷰 리스트 그리드 */
         .review-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
         }
 
-        /* 게임 카드 */
         .game-card {
             display: flex; flex-direction: column; background: #fff;
             border: var(--border-width) solid var(--border-color);
@@ -225,7 +210,6 @@
             color: #FFDE59; display: inline-block; padding: 2px 6px;
         }
 
-        /* 반응형 */
         @media (max-width: 600px) {
             .profile-header { flex-direction: column; text-align: center; padding: 20px; }
             .action-buttons { justify-content: center; width: 100%; }
@@ -254,6 +238,7 @@
 
     <div class="brutal-container">
         
+        <!-- 상단 프로필 카드 -->
         <div class="brutal-card profile-header">
             <img id="profile_img" class="profile-img" src="/default_profile.png" alt="프로필 사진">
             
@@ -268,7 +253,9 @@
             </div>
         </div>
 
+        <!-- 아래 내용 카드: BIO + Steam + Reviews 한 장 안에서 처리 -->
         <div class="brutal-card content-section">
+            <!-- 자기소개 -->
             <div class="section-label">MY BIO (자기소개)</div>
             <div id="showMyself" class="bio-text">
                 작성된 자기소개가 없습니다. 자기소개를 입력해보세요!
@@ -276,11 +263,20 @@
             
             <br><br>
 
-            <div class="section-label" style="background-color: var(--accent-pink); color: black;">MY REVIEWS</div>
-            <div id="rateList" class="review-grid">
-                </div>
-        </div>
+            <!-- ✅ Steam 최근 플레이 섹션 -->
+            <div class="section-label" style="background-color: var(--accent-blue); color: black;">
+                Steam 최근 플레이
+            </div>
+            <div id="steamRecent" class="review-grid">
+                <!-- JS 로 카드가 채워집니다. -->
+            </div>
 
+            <br><br>
+
+            <!-- 나의 리뷰 -->
+            <div class="section-label" style="background-color: var(--accent-pink); color: black;">MY REVIEWS</div>
+            <div id="rateList" class="review-grid"></div>
+        </div>
     </div>
 
     <script type="module" src="/scripts/profile.js"></script>

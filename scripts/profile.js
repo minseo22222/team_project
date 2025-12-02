@@ -1,16 +1,19 @@
 // scripts/profile.js
 import supabase from './supabase.js';
 
-// 페이지 로드 시
+// ✅ Edge Function 슬러그 (Supabase Edge Functions > Details 화면의 Slug)
+const EDGE_FUNC_SLUG = 'hyper-api';
+
+
+// 페이지 로드 시 진입점
 document.addEventListener('DOMContentLoaded', async () => {
-  // 현재 로그인 세션
   const { data: { session } } = await supabase.auth.getSession();
 
   const params = new URLSearchParams(window.location.search);
   const queryUserId = params.get('id');          // URL 로 온 user_id
   const loggedInId  = session?.user?.id || null; // 내가 로그인한 id
 
-  // 보여줄 대상 유저 id (URL 이 우선, 없으면 내 것)
+  // 보여줄 대상 유저 id (URL 우선, 없으면 내 것)
   const viewUserId = queryUserId || loggedInId;
 
   if (!viewUserId) {
@@ -19,10 +22,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // 프로필 / 리뷰 / Steam 동시 로딩
   await loadUserProfile(viewUserId, session?.user?.email || '');
+
+  // Steam / 리뷰 동시 로드
   await Promise.all([
-    loadSteamRecent(viewUserId),
+    loadSteamSections(viewUserId),
     loadUserReviews(viewUserId),
   ]);
 
@@ -30,7 +34,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 
-// --- 프로필 정보 로드 ---
+// ===================== 프로필 정보 로드 =====================
+
 async function loadUserProfile(userId, authEmail) {
   try {
     const { data: userData, error } = await supabase
@@ -61,15 +66,28 @@ async function loadUserProfile(userId, authEmail) {
 }
 
 
-// --- ✅ Steam 최근 플레이 로드 ---
-async function loadSteamRecent(userId) {
-  const box = document.getElementById('steamRecent');
-  if (!box) return;
+// ===================== Steam 섹션 (최근 + 라이브러리) =====================
 
-  box.innerHTML = '<p style="padding:10px;">Steam 데이터 로딩 중...</p>';
+async function loadSteamSections(userId) {
+  const recentRow = document.getElementById('steam-recent-two');  // 상단: 최근 2개
+  const gamesRow  = document.getElementById('steamRecent');       // 하단: 전체 라이브러리
+  const countEl   = document.getElementById('steam-total-games'); // 총 보유 게임
+
+  if (!recentRow && !gamesRow) return;
+
+  // 초기 메세지
+  if (recentRow) {
+    recentRow.innerHTML =
+      '<p style="font-size:14px; color:#444;">Steam 데이터 로딩 중...</p>';
+  }
+  if (gamesRow) {
+    gamesRow.innerHTML =
+      '<p style="padding:10px; font-size:14px;">Steam 데이터 로딩 중...</p>';
+  }
+  if (countEl) countEl.textContent = '정보 로딩 중...';
 
   try {
-    // 1) Users 테이블에서 steam_id 조회
+    // 1) Users 테이블에서 steam_id 가져오기
     const { data: userRow, error: userErr } = await supabase
       .from('Users')
       .select('steam_id')
@@ -78,23 +96,32 @@ async function loadSteamRecent(userId) {
 
     if (userErr) {
       console.error('steam_id 조회 실패:', userErr);
-      box.innerHTML = '<p style="color:red;">Steam 데이터를 불러올 수 없습니다.</p>';
+      if (recentRow) recentRow.innerHTML = '<p style="color:red;">Steam 데이터를 불러올 수 없습니다.</p>';
+      if (gamesRow)  gamesRow.innerHTML  = '<p style="color:red;">Steam 데이터를 불러올 수 없습니다.</p>';
+      if (countEl)   countEl.textContent = 'Steam 정보 오류';
       return;
     }
 
     const steamId = userRow?.steam_id?.trim();
     if (!steamId) {
-      // 등록 안 된 경우 안내 문구
-      box.innerHTML = `
-        <p style="font-size:14px; color:#444;">
-          프로필 편집에서 Steam ID64 를 등록하면<br>
-          이곳에 최근 플레이한 게임이 표시됩니다.
-        </p>`;
+      if (recentRow) {
+        recentRow.innerHTML = `
+          <p style="font-size:14px; color:#444;">
+            프로필 편집에서 Steam ID64 를 등록하면,<br>
+            최근 2주 동안 플레이한 게임이 여기 표시됩니다.
+          </p>`;
+      }
+      if (gamesRow) {
+        gamesRow.innerHTML = `
+          <p style="font-size:14px; color:#444;">
+            Steam ID64 를 등록하면, 보유한 게임과 플레이 시간이 표시됩니다.
+          </p>`;
+      }
+      if (countEl) countEl.textContent = 'Steam ID 미등록';
       return;
     }
 
     // 2) Edge Function 호출
-    const EDGE_FUNC_SLUG = 'hyper-api';
     const { data, error: fnError } = await supabase.functions.invoke(
       EDGE_FUNC_SLUG,
       { body: { steamid: steamId } },
@@ -105,57 +132,133 @@ async function loadSteamRecent(userId) {
     if (fnError) {
       const msg = fnError.message || JSON.stringify(fnError);
       console.error('Steam Edge 함수 오류:', fnError);
-      box.innerHTML =
-        `<p style="color:red;">Steam 데이터를 불러올 수 없습니다.<br>${esc(msg)}</p>`;
+      if (recentRow) {
+        recentRow.innerHTML =
+          `<p style="color:red;">Steam 데이터를 불러올 수 없습니다.<br>${esc(msg)}</p>`;
+      }
+      if (gamesRow) {
+        gamesRow.innerHTML =
+          `<p style="color:red;">Steam 데이터를 불러올 수 없습니다.<br>${esc(msg)}</p>`;
+      }
+      if (countEl) countEl.textContent = 'Steam 정보 오류';
       return;
     }
 
-    const games = data?.response?.games || [];
-    if (!games.length) {
-      box.innerHTML =
-        '<p style="font-size:14px; color:#444;">최근 2주간 플레이한 게임이 없습니다.</p>';
-      return;
+    // 응답 구조가 약간 바뀌어도 괜찮게 처리
+    const summary = data?.summary || {};
+    const owned   = data?.owned_games  || data?.games   || [];
+    const recent  = data?.recent_games || data?.recent  || [];
+
+    // ===== 2-1) 상단: 최근 2주 플레이 게임 =====
+    if (recentRow) {
+      if (!recent || recent.length === 0) {
+        recentRow.innerHTML =
+          '<p style="font-size:14px; color:#666;">최근 2주 동안 플레이한 게임이 없습니다.</p>';
+      } else {
+        // playtime_2weeks 기준으로 정렬, 최대 2개
+        const recentSorted = [...recent].sort(
+          (a, b) => (b.playtime_2weeks || 0) - (a.playtime_2weeks || 0)
+        ).slice(0, 2);
+
+        recentRow.innerHTML = '';
+        recentSorted.forEach(g => {
+          const appid = g.appid;
+          const name  = g.name;
+          const hours2w = (g.playtime_2weeks || 0) / 60;
+          const imgUrl =
+            `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/header.jpg`;
+
+          const card = document.createElement('a');
+          card.className = 'game-card';
+          card.href = `https://store.steampowered.com/app/${appid}`;
+          card.target = '_blank';
+          card.rel = 'noopener noreferrer';
+
+          card.innerHTML = `
+            <div class="card-img-wrapper">
+              <img src="${imgUrl}" alt="${esc(name)}"
+                   onerror="this.src='https://via.placeholder.com/300x140?text=No+Image'">
+            </div>
+            <div class="card-info">
+              <span class="game-title">${esc(name)}</span>
+              <div style="font-size:13px; margin-top:6px; line-height:1.4;">
+                최근 2주 플레이: ${hours2w.toFixed(1)}시간
+              </div>
+            </div>
+          `;
+          recentRow.appendChild(card);
+        });
+      }
     }
 
-    // 3) 카드 렌더링 (최대 2개)
-    box.innerHTML = '';
-    games.slice(0, 2).forEach((game) => {
-      const appid = game.appid;
-      const name  = game.name;
-      const play2w = (game.playtime_2weeks   || 0) / 60;
-      const playAll = (game.playtime_forever || 0) / 60;
-      const imgUrl =
-        `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/header.jpg`;
+    // ===== 2-2) 하단: 전체 라이브러리 (가로 스크롤) =====
+    if (gamesRow) {
+      const totalGames =
+        summary?.owned_game_count ??
+        data?.owned_game_count ??
+        owned.length;
 
-      const card = document.createElement('a');
-      card.className = 'game-card';
-      card.href = `https://store.steampowered.com/app/${appid}`;
-      card.target = '_blank';
-      card.rel = 'noopener noreferrer';
+      if (countEl) {
+        countEl.textContent = `총 보유 게임 ${totalGames}개`;
+      }
 
-      card.innerHTML = `
-        <div class="card-img-wrapper">
-          <img src="${imgUrl}" alt="${esc(name)}"
-               onerror="this.src='https://via.placeholder.com/300x140?text=No+Image'">
-        </div>
-        <div class="card-info">
-          <span class="game-title">${esc(name)}</span>
-          <div style="font-size:13px; margin-top:6px; line-height:1.4;">
-            최근 2주: ${play2w.toFixed(1)}시간<br>
-            누적 플레이: ${playAll.toFixed(1)}시간
-          </div>
-        </div>
-      `;
-      box.appendChild(card);
-    });
+      if (!owned || owned.length === 0) {
+        gamesRow.innerHTML =
+          '<p style="font-size:14px; color:#444;">보유한 게임이 없습니다.</p>';
+      } else {
+        const gamesSorted = [...owned].sort(
+          (a, b) => (b.playtime_forever || 0) - (a.playtime_forever || 0)
+        );
+
+        gamesRow.innerHTML = '';
+
+        gamesSorted.forEach(game => {
+          const appid = game.appid;
+          const name  = game.name;
+          const hours = (game.playtime_forever || 0) / 60;
+          const imgUrl =
+            `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/header.jpg`;
+
+          const card = document.createElement('a');
+          card.className = 'game-card';
+          card.href = `https://store.steampowered.com/app/${appid}`;
+          card.target = '_blank';
+          card.rel = 'noopener noreferrer';
+
+          card.innerHTML = `
+            <div class="card-img-wrapper">
+              <img src="${imgUrl}" alt="${esc(name)}"
+                   onerror="this.src='https://via.placeholder.com/300x140?text=No+Image'">
+            </div>
+            <div class="card-info">
+              <span class="game-title">${esc(name)}</span>
+              <div style="font-size:13px; margin-top:6px; line-height:1.4;">
+                누적 플레이: ${hours.toFixed(1)}시간
+              </div>
+            </div>
+          `;
+          gamesRow.appendChild(card);
+        });
+      }
+    }
+
   } catch (err) {
     console.error('Steam 섹션 오류:', err);
-    box.innerHTML = '<p style="color:red;">Steam 데이터를 불러올 수 없습니다.</p>';
+    if (recentRow) {
+      recentRow.innerHTML =
+        '<p style="color:red;">Steam 데이터를 불러올 수 없습니다.</p>';
+    }
+    if (gamesRow) {
+      gamesRow.innerHTML =
+        '<p style="color:red;">Steam 데이터를 불러올 수 없습니다.</p>';
+    }
+    if (countEl) countEl.textContent = 'Steam 정보 오류';
   }
 }
 
 
-// --- 사용자 리뷰 로드 (원래 있던 함수, userId 파라미터만 사용) ---
+// ===================== 사용자 리뷰 로드 =====================
+
 async function loadUserReviews(userId) {
   const rateList = document.getElementById('rateList');
   if (!rateList) return;
@@ -222,13 +325,13 @@ async function loadUserReviews(userId) {
 
   } catch (err) {
     console.error('리뷰 스크립트 오류:', err);
-    document.getElementById('rateList').innerHTML =
-      '<p>오류가 발생했습니다.</p>';
+    rateList.innerHTML = '<p>오류가 발생했습니다.</p>';
   }
 }
 
 
-// --- 게임 이미지 URL 헬퍼 ---
+// ===================== 게임 이미지 URL 헬퍼 =====================
+
 async function getGameImageUrl(game) {
   if (game.cover_image_url && game.cover_image_url.startsWith('http')) {
     return game.cover_image_url;
@@ -254,15 +357,16 @@ async function getGameImageUrl(game) {
 }
 
 
-// --- 버튼 이벤트 설정 ---
+// ===================== 버튼 이벤트 =====================
+
 function setupButtons(session, viewUserId) {
-  const editBtn   = document.getElementById('editProfileBtn');
-  const logoutBtn = document.getElementById('logout');
+  const editBtn    = document.getElementById('editProfileBtn');
+  const logoutBtn  = document.getElementById('logout');
   const loggedInId = session?.user?.id || null;
 
   // 세션이 없으면 둘 다 숨김
   if (!session) {
-    if (editBtn) editBtn.style.display = 'none';
+    if (editBtn)   editBtn.style.display = 'none';
     if (logoutBtn) logoutBtn.style.display = 'none';
     return;
   }
@@ -279,7 +383,7 @@ function setupButtons(session, viewUserId) {
     }
   }
 
-  // 로그아웃은 항상 가능
+  // 로그아웃 버튼
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       try {
@@ -296,7 +400,8 @@ function setupButtons(session, viewUserId) {
 }
 
 
-// --- 간단 이스케이프 헬퍼 ---
+// ===================== 간단 escape 헬퍼 =====================
+
 function esc(str) {
   return String(str ?? '')
     .replaceAll('&', '&amp;')

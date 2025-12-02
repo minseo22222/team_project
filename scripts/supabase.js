@@ -7,6 +7,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // 클라이언트 중복 생성을 방지
 let supabase;
 
+
+
 if (!window.supabaseClient) {
   window.supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }

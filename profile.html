@@ -2,283 +2,592 @@
 <html lang="ko">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>내 프로필</title>
-    <style>
-        /* --- Neo-Brutalism (팝 아트) 테마 변수 --- */
-        :root {
-            --bg-color: #FFDE59;       /* 쨍한 노란색 배경 */
-            --card-bg: #FFFFFF;        /* 흰색 카드 */
-            --border-color: #000000;   /* 완전 검은색 테두리 */
-            --accent-pink: #FF90E8;    /* 포인트 핑크 */
-            --accent-blue: #54C1FF;    /* 포인트 블루 */
-            --shadow-hard: 6px 6px 0px 0px #000000; /* 흐림 없는 딱딱한 그림자 */
-            --shadow-hover: 3px 3px 0px 0px #000000; /* 눌렀을 때 그림자 */
-            --border-width: 3px;       /* 굵은 테두리 */
-            
-            /* 헤더용 변수 */
-            --nav-h: 64px;
-            --brand: #54C1FF;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 프로필</title>
+  <style>
+    /* --- Neo-Brutalism (팝 아트) 기본 테마 --- */
+    :root {
+      --bg-color: #FFDE59;
+      --card-bg: #FFFFFF;
+      --border-color: #000000;
+      --accent-pink: #FF90E8;
+      --accent-blue: #54C1FF;
+      --shadow-hard: 6px 6px 0px 0px #000000;
+      --border-width: 3px;
 
-        body {
-            min-height: 100vh;
-            background-color: var(--bg-color);
-            background-image: radial-gradient(#000 1px, transparent 1px);
-            background-size: 20px 20px;
-            
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            display: block; 
-            color: var(--border-color);
-        }
+      --nav-h: 64px;
+      --brand: #54C1FF;
+    }
 
-        /* 헤더 */
-        header, .fixed-header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            height: var(--nav-h);
-            background: #fff;
-            border-bottom: var(--border-width) solid var(--border-color);
-            box-shadow: 0 2px 0 #000;
-            width: 100%;
-            display: block;
-        }
+    body {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      background-image: radial-gradient(#000 1px, transparent 1px);
+      background-size: 20px 20px;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      display: block;
+      color: var(--border-color);
+    }
 
-        .nav {
-            max-width: 1200px;
-            height: 100%;
-            margin: 0 auto;
-            padding: 0 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    /* ================= 헤더 ================= */
 
-        .nav .left { display: flex; align-items: center; gap: 20px; }
-        .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #000; }
-        .brand .logo {
-            width: 32px; height: 32px;
-            border: 2px solid #000;
-            display: grid; place-items: center;
-            background: var(--brand);
-            color: #000; font-weight: 900;
-            border-radius: 6px;
-        }
-        .brand-name { font-weight: 900; font-size: 20px; text-transform: uppercase; }
-        
-        .nav-links { display: flex; gap: 16px; }
-        .nav-links a { 
-            font-weight: 700; font-size: 16px; padding: 6px 10px; 
-            text-decoration: none; color: #555;
-            border: 2px solid transparent; border-radius: 6px; transition: all 0.2s;
-        }
-        .nav-links a:hover { background: #000; color: #fff; transform: rotate(-2deg); }
+    header,
+    .fixed-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      height: var(--nav-h);
+      background: #fff;
+      border-bottom: var(--border-width) solid var(--border-color);
+      box-shadow: 0 2px 0 #000;
+      width: 100%;
+      display: block;
+    }
 
-        .search { flex: 1; display: flex; justify-content: center; }
-        .search-field { width: min(40vw, 400px); position: relative; }
-        .search-field input {
-            width: 100%; height: 40px; padding: 0 14px 0 40px;
-            border: 2px solid #000; outline: none; background: #fff; font-weight: 600;
-            box-shadow: 3px 3px 0 #000; border-radius: 0;
-        }
-        .search-field .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; }
+    .nav {
+      max-width: 1200px;
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        .actions { display: flex; gap: 12px; align-items: center; position: relative; }
-        #user_profile { width: 36px; height: 36px; border: 2px solid #000; background: #eee; border-radius: 50%; cursor: pointer; }
-        
-        .menu {
-            position: absolute; right: 0; top: calc(100% + 10px);
-            width: 140px; background: #fff; border: 2px solid #000;
-            box-shadow: 4px 4px 0 #000; display: none; z-index: 2000;
-        }
-        .menu.open { display: block; }
-        .menu ul { list-style: none; padding: 0; margin: 0; }
-        .menu li { padding: 12px 16px; font-weight: 700; cursor: pointer; border-bottom: 2px solid #000; }
-        .menu li:last-child { border-bottom: none; }
-        .menu li:hover { background: var(--brand); color: #fff; }
+    .nav .left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
 
-        /* 프로필 페이지 */
-        .brutal-container {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            padding: 20px;
-            margin: 40px auto;
-        }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #000;
+    }
 
-        .brutal-card {
-            background: var(--card-bg);
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: var(--shadow-hard);
-            padding: 30px;
-            border-radius: 0;
-        }
+    .brand .logo {
+      width: 32px;
+      height: 32px;
+      border: 2px solid #000;
+      display: grid;
+      place-items: center;
+      background: var(--brand);
+      color: #000;
+      font-weight: 900;
+      border-radius: 6px;
+    }
 
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            background-color: #fff;
-        }
+    .brand-name {
+      font-weight: 900;
+      font-size: 20px;
+      text-transform: uppercase;
+    }
 
-        .profile-img {
-            width: 110px; height: 110px; object-fit: cover;
-            border: var(--border-width) solid var(--border-color);
-            background-color: #eee;
-            box-shadow: 4px 4px 0px #000; 
-        }
+    .nav-links {
+      display: flex;
+      gap: 16px;
+    }
 
-        .header-info { flex: 1; }
+    .nav-links a {
+      font-weight: 700;
+      font-size: 16px;
+      padding: 6px 10px;
+      text-decoration: none;
+      color: #555;
+      border: 2px solid transparent;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
 
-        .nickname {
-            font-size: 32px; font-weight: 900; margin: 0 0 4px 0;
-            text-transform: uppercase; letter-spacing: -1px;
-        }
+    .nav-links a:hover {
+      background: #000;
+      color: #fff;
+      transform: rotate(-2deg);
+    }
 
-        .email {
-            font-size: 16px; font-weight: 600; color: #555;
-            margin-bottom: 16px; display: flex; align-items: center; gap: 6px;
-            font-family: monospace;
-        }
+    .search {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
 
-        .action-buttons { display: flex; gap: 12px; }
+    .search-field {
+      width: min(40vw, 400px);
+      position: relative;
+    }
 
-        .btn {
-            padding: 10px 20px;
-            border: var(--border-width) solid var(--border-color);
-            font-size: 14px; font-weight: 800; cursor: pointer;
-            box-shadow: 4px 4px 0px 0px #000; transition: all 0.1s;
-            text-transform: uppercase;
-        }
+    .search-field input {
+      width: 100%;
+      height: 40px;
+      padding: 0 14px 0 40px;
+      border: 2px solid #000;
+      outline: none;
+      background: #fff;
+      font-weight: 600;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 0;
+    }
 
-        .btn-primary { background-color: var(--accent-blue); color: var(--border-color); }
-        .btn-primary:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px 0px #000; }
+    .search-field .icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+    }
 
-        .btn-secondary { background-color: #fff; color: var(--border-color); }
-        .btn-secondary:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px 0px #000; background-color: #f0f0f0; }
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      position: relative;
+    }
 
-        .section-label {
-            display: inline-block; background-color: var(--border-color); color: #fff;
-            padding: 8px 16px; font-weight: 900; font-size: 14px; margin-bottom: 16px;
-            transform: rotate(-1deg);
-        }
+    #user_profile {
+      width: 36px;
+      height: 36px;
+      border: 2px solid #000;
+      background: #eee;
+      border-radius: 50%;
+      cursor: pointer;
+    }
 
-        .bio-text {
-            font-size: 16px; line-height: 1.6; font-weight: 500;
-            border: 2px dashed var(--border-color); padding: 16px;
-            background-color: #fffaf0;
-        }
+    .menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 10px);
+      width: 140px;
+      background: #fff;
+      border: 2px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      display: none;
+      z-index: 2000;
+    }
 
-        .review-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-        }
+    .menu.open {
+      display: block;
+    }
 
-        .game-card {
-            display: flex; flex-direction: column; background: #fff;
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: 4px 4px 0px 0px #000; text-decoration: none;
-            color: var(--border-color); transition: all 0.2s; position: relative;
-        }
+    .menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
 
-        .game-card:hover {
-            transform: translate(-2px, -2px); box-shadow: 8px 8px 0px 0px #000;
-            background-color: var(--accent-pink);
-        }
+    .menu li {
+      padding: 12px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      border-bottom: 2px solid #000;
+    }
 
-        .card-img-wrapper {
-            width: 100%; height: 140px; border-bottom: var(--border-width) solid var(--border-color);
-            background: #fff;
-        }
-        .card-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+    .menu li:last-child {
+      border-bottom: none;
+    }
 
-        .card-info { padding: 12px; }
+    .menu li:hover {
+      background: var(--brand);
+      color: #fff;
+    }
 
-        .game-title {
-            font-size: 16px; font-weight: 800; margin-bottom: 6px; display: block;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
+    /* =============== 프로필 전체 레이아웃 =============== */
 
-        .rating {
-            font-size: 14px; font-weight: 700; background-color: #000;
-            color: #FFDE59; display: inline-block; padding: 2px 6px;
-        }
+    .brutal-container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 20px;
+      margin: 40px auto;
+    }
 
-        @media (max-width: 600px) {
-            .profile-header { flex-direction: column; text-align: center; padding: 20px; }
-            .action-buttons { justify-content: center; width: 100%; }
-            .review-grid { grid-template-columns: 1fr; }
-            .game-card { flex-direction: row; height: 90px; }
-            .card-img-wrapper { width: 90px; height: 100%; border-bottom: none; border-right: var(--border-width) solid var(--border-color); }
-            .card-info { justify-content: center; display: flex; flex-direction: column; flex: 1; }
-        }
-    </style>
+    .brutal-card {
+      background: var(--card-bg);
+      border: var(--border-width) solid var(--border-color);
+      box-shadow: var(--shadow-hard);
+      padding: 30px;
+      border-radius: 0;
+    }
+
+    /* 상단 프로필 카드 */
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      background-color: #fff;
+    }
+
+    .profile-img {
+      width: 110px;
+      height: 110px;
+      object-fit: cover;
+      border: var(--border-width) solid var(--border-color);
+      background-color: #eee;
+      box-shadow: 4px 4px 0px #000;
+    }
+
+    .header-info {
+      flex: 1;
+    }
+
+    .nickname {
+      font-size: 32px;
+      font-weight: 900;
+      margin: 0 0 4px 0;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+    }
+
+    .email {
+      font-size: 16px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: monospace;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: var(--border-width) solid var(--border-color);
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 4px 4px 0px 0px #000;
+      transition: all 0.1s;
+      text-transform: uppercase;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-blue);
+      color: var(--border-color);
+    }
+
+    .btn-primary:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px 0px #000;
+    }
+
+    .btn-secondary {
+      background-color: #fff;
+      color: var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px 0px #000;
+      background-color: #f0f0f0;
+    }
+
+    /* 공통 섹션 라벨 */
+
+    .section-label {
+      display: inline-block;
+      background-color: var(--border-color);
+      color: #fff;
+      padding: 8px 16px;
+      font-weight: 900;
+      font-size: 14px;
+      margin-bottom: 16px;
+      transform: rotate(-1deg);
+    }
+
+    .bio-text {
+      font-size: 16px;
+      line-height: 1.6;
+      font-weight: 500;
+      border: 2px dashed var(--border-color);
+      padding: 16px;
+      background-color: #fffaf0;
+    }
+
+    /* 리뷰 카드 그리드 */
+
+    .review-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .game-card {
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border: var(--border-width) solid var(--border-color);
+      box-shadow: 4px 4px 0px 0px #000;
+      text-decoration: none;
+      color: var(--border-color);
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .game-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0px 0px #000;
+      background-color: var(--accent-pink);
+    }
+
+    .card-img-wrapper {
+      width: 100%;
+      height: 140px;
+      border-bottom: var(--border-width) solid var(--border-color);
+      background: #fff;
+    }
+
+    .card-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-info {
+      padding: 12px;
+    }
+
+    .game-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rating {
+      font-size: 14px;
+      font-weight: 700;
+      background-color: #000;
+      color: #FFDE59;
+      display: inline-block;
+      padding: 2px 6px;
+    }
+
+    @media (max-width: 600px) {
+      .profile-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+      }
+
+      .action-buttons {
+        justify-content: center;
+        width: 100%;
+      }
+
+      .review-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .game-card {
+        flex-direction: row;
+        height: 90px;
+      }
+
+      .card-img-wrapper {
+        width: 90px;
+        height: 100%;
+        border-bottom: none;
+        border-right: var(--border-width) solid var(--border-color);
+      }
+
+      .card-info {
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+    }
+
+    /* =========== Steam 공통 카드 박스 =========== */
+
+    .steam-section {
+      border: 2px solid var(--border-color);
+      background: #ffffff;
+      box-shadow: 4px 4px 0 var(--border-color);
+      padding: 14px 16px 12px;
+    }
+
+    /* 상단: 최근 플레이 2개 전용 박스 */
+
+    .steam-recent-section {
+      padding-top: 10px;
+    }
+
+    .steam-recent-two-row {
+      display: flex;
+      gap: 16px;
+      align-items: stretch;
+      min-height: 150px;
+    }
+
+    .steam-recent-two-row p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .steam-recent-two-row .game-card {
+      flex: 1;
+      min-width: 260px;
+      max-width: 320px;
+    }
+
+    .steam-recent-two-row .card-img-wrapper {
+      height: 140px;
+    }
+
+    .steam-recent-two-row .game-title {
+      font-size: 15px;
+    }
+
+    /* 하단: 라이브러리 헤더 + 가로 스크롤 */
+
+    .steam-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .steam-title {
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .steam-count {
+      font-weight: 900;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .steam-games-row {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 6px 2px 4px;
+      scrollbar-width: thin;
+    }
+
+    .steam-games-row::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .steam-games-row::-webkit-scrollbar-thumb {
+      background: #000;
+    }
+
+    .steam-games-row::-webkit-scrollbar-track {
+      background: #f5f5f5;
+    }
+
+    .steam-games-row .game-card {
+      min-width: 230px;
+      max-width: 230px;
+    }
+
+    .steam-games-row .card-img-wrapper {
+      height: 120px;
+    }
+
+    .steam-games-row .game-title {
+      font-size: 15px;
+    }
+  </style>
 </head>
 
 <body>
 
-    <div id="header"></div>
-    <script type="module">
-        fetch('components/header.html')
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById('header').innerHTML = html;
-                const script = document.createElement('script');
-                script.type = 'module';
-                script.src = 'scripts/header_user.js';
-                document.body.appendChild(script);
-            });
-    </script>
+  <div id="header"></div>
+  <script type="module">
+    fetch('components/header.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('header').innerHTML = html;
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'scripts/header_user.js';
+        document.body.appendChild(script);
+      });
+  </script>
 
-    <div class="brutal-container">
-        
-        <!-- 상단 프로필 카드 -->
-        <div class="brutal-card profile-header">
-            <img id="profile_img" class="profile-img" src="/default_profile.png" alt="프로필 사진">
-            
-            <div class="header-info">
-                <h2 id="nickname" class="nickname">PlayerOne</h2>
-                <div id="email" class="email">example@gamecritic.com</div>
-                
-                <div class="action-buttons">
-                    <button id="editProfileBtn" class="btn btn-primary">내 정보 수정</button>
-                    <button id="logout" class="btn btn-secondary">로그아웃</button>
-                </div>
-            </div>
+  <div class="brutal-container">
+
+    <!-- 상단 프로필 카드 -->
+    <div class="brutal-card profile-header">
+      <img id="profile_img" class="profile-img" src="/default_profile.png" alt="프로필 사진">
+
+      <div class="header-info">
+        <h2 id="nickname" class="nickname">PlayerOne</h2>
+        <div id="email" class="email">example@gamecritic.com</div>
+
+        <div class="action-buttons">
+          <button id="editProfileBtn" class="btn btn-primary">내 정보 수정</button>
+          <button id="logout" class="btn btn-secondary">로그아웃</button>
         </div>
-
-        <!-- 아래 내용 카드: BIO + Steam + Reviews 한 장 안에서 처리 -->
-        <div class="brutal-card content-section">
-            <!-- 자기소개 -->
-            <div class="section-label">MY BIO (자기소개)</div>
-            <div id="showMyself" class="bio-text">
-                작성된 자기소개가 없습니다. 자기소개를 입력해보세요!
-            </div>
-            
-            <br><br>
-
-            <!-- ✅ Steam 최근 플레이 섹션 -->
-            <div class="section-label" style="background-color: var(--accent-blue); color: black;">
-                Steam 최근 플레이
-            </div>
-            <div id="steamRecent" class="review-grid">
-                <!-- JS 로 카드가 채워집니다. -->
-            </div>
-
-            <br><br>
-
-            <!-- 나의 리뷰 -->
-            <div class="section-label" style="background-color: var(--accent-pink); color: black;">MY REVIEWS</div>
-            <div id="rateList" class="review-grid"></div>
-        </div>
+      </div>
     </div>
 
-    <script type="module" src="/scripts/profile.js"></script>
+    <!-- 아래 내용 카드: BIO + Steam + Reviews -->
+    <div class="brutal-card content-section">
+      <!-- 자기소개 -->
+      <div class="section-label">MY BIO (자기소개)</div>
+      <div id="showMyself" class="bio-text">
+        작성된 자기소개가 없습니다. 자기소개를 입력해보세요!
+      </div>
+
+      <br><br>
+
+      <!-- 🔵 ① Steam 최근 플레이 (최근 2주 기준) -->
+      <div class="section-label" style="background-color: var(--accent-blue); color: black;">
+        Steam 최근 플레이
+      </div>
+      <div class="steam-section steam-recent-section">
+        <div id="steam-recent-two" class="steam-recent-two-row">
+          <!-- JS 로 최근 2개 게임 카드가 들어옵니다 -->
+        </div>
+      </div>
+
+      <br>
+
+      <!-- ⚪ ② Steam 전체 라이브러리 (가로 스크롤) -->
+      <div class="section-label" style="background-color:#ffffff; color:black; border:2px solid #000; box-shadow:2px 2px 0 #000;">
+        Steam 라이브러리
+      </div>
+      <div class="steam-section steam-library-section">
+        <div class="steam-header-row">
+          <div class="steam-title">내 Steam 라이브러리</div>
+          <div class="steam-count" id="steam-total-games">총 보유 게임 0개</div>
+        </div>
+        <div id="steamRecent" class="steam-games-row">
+          <!-- JS 로 전체 게임 카드가 들어옵니다 -->
+        </div>
+      </div>
+
+      <br><br>
+
+      <!-- 나의 리뷰 -->
+      <div class="section-label" style="background-color: var(--accent-pink); color: black;">MY REVIEWS</div>
+      <div id="rateList" class="review-grid"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/scripts/profile.js"></script>
 </body>
+
 </html>

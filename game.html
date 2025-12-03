@@ -62,6 +62,7 @@
     <h2>🖥️ 내 컴퓨터로 실행 가능할까?</h2>
     
     <div class="spec-container">
+  
       <div class="spec-item">
         <h3>1. CPU (프로세서)</h3>
         <div class="search-box">
@@ -70,6 +71,9 @@
         </div>
         <div id="cpuList" class="result-list"></div>
         <div id="cpuSelectedText" class="selected-text">선택된 부품 없음</div>
+        
+        <div id="cpuResult" style="margin-top:10px;"></div>
+        <input type="hidden" id="myCpuName" value="">
         <input type="hidden" id="myCpuScore" value="0">
       </div>
 
@@ -81,18 +85,20 @@
         </div>
         <div id="gpuList" class="result-list"></div>
         <div id="gpuSelectedText" class="selected-text">선택된 부품 없음</div>
+
+        <div id="gpuResult" style="margin-top:10px;"></div>
+        <input type="hidden" id="myGpuName" value="">
         <input type="hidden" id="myGpuScore" value="0">
       </div>
+
     </div>
 
     <div class="spec-result-container">
       <h3>3. 구동 여부 확인</h3>
       <button onclick="checkCanRun()" class="check-btn">🎮 실행 가능한지 확인하기</button>
-      <div id="finalResult" class="final-result">
-        부품을 선택하고 버튼을 눌러주세요.
-      </div>
+      <div id="finalResult" class="final-result"></div>
     </div>
-  </section>
+    </section>
   
   <script type="module">
   // supabase import 추가
@@ -153,74 +159,159 @@
   }
 
   // 부품 선택 함수
-  function selectPart(type, name, score) {
-    document.getElementById(type + 'SelectedText').innerText = `✅ 선택됨: ${name}`;
-    document.getElementById('my' + type.charAt(0).toUpperCase() + type.slice(1) + 'Score').value = score;
-    document.getElementById(type + 'List').style.display = 'none';
-  }
+  // [수정됨] 부품 선택 함수 (이름도 같이 저장!)
+function selectPart(type, name, score) {
+  // 1. 화면에 선택된 이름 표시
+  document.getElementById(type + 'SelectedText').innerText = `✅ 선택됨: ${name}`;
+  
+  // 2. 점수 저장 (기존 기능)
+  const scoreId = 'my' + type.charAt(0).toUpperCase() + type.slice(1) + 'Score';
+  document.getElementById(scoreId).value = score;
+  
+  // 3. ★ 이름 저장 (새로 추가된 기능)
+  const nameId = 'my' + type.charAt(0).toUpperCase() + type.slice(1) + 'Name';
+  document.getElementById(nameId).value = name;
+  
+  // 4. 목록 닫기
+  document.getElementById(type + 'List').style.display = 'none';
+}
 
   // 최종 비교 함수
+  // [수정됨] 최종 비교 함수 (최소/권장 각각 비교 기능 추가)
+  // [수정됨] 최종 비교 함수 (브랜드 인식 능력 강화 버전)
   async function checkCanRun() {
-    const myCpuScore = parseInt(document.getElementById('myCpuScore').value);
-    const myGpuScore = parseInt(document.getElementById('myGpuScore').value);
-    const resultDiv = document.getElementById('finalResult');
+    const myCpuScore = parseInt(document.getElementById('myCpuScore').value) || 0;
+    const myGpuScore = parseInt(document.getElementById('myGpuScore').value) || 0;
+    const myCpuName = document.getElementById('myCpuName').value || "";
+    const myGpuName = document.getElementById('myGpuName').value || "";
+
+    const cpuResDiv = document.getElementById('cpuResult');
+    const gpuResDiv = document.getElementById('gpuResult');
+    const finalResDiv = document.getElementById('finalResult');
 
     const params = new URLSearchParams(window.location.search);
     const gameSlug = params.get('id');
 
     if (myCpuScore === 0 || myGpuScore === 0) {
-      alert("먼저 CPU와 그래픽카드를 검색해서 선택해주세요!");
+      alert("먼저 CPU와 그래픽카드를 모두 검색해서 선택해주세요!");
       return;
     }
 
-    resultDiv.innerHTML = "게임 데이터 분석 중...";
+    cpuResDiv.innerHTML = "<small>분석 중...</small>";
+    gpuResDiv.innerHTML = "<small>분석 중...</small>";
+    finalResDiv.innerHTML = "데이터 분석 중...";
 
     try {
       const { data: gameData, error: gameError } = await supabase
-        .from('Games')
-        .select('steam_app_id')
-        .eq('slug', gameSlug)
-        .single();
+        .from('Games').select('steam_app_id').eq('slug', gameSlug).single();
 
       if (gameError || !gameData?.steam_app_id) {
-        resultDiv.innerHTML = "<span class='spec-fail'>게임 정보를 찾을 수 없습니다.</span>";
-        return;
+        finalResDiv.innerHTML = "<span class='spec-fail'>게임 정보를 찾을 수 없습니다.</span>"; return;
       }
 
       const { data, error } = await supabase
-        .from('game_score_tb')
-        .select('*')
-        .eq('steam_app_id', gameData.steam_app_id)
-        .single();
+        .from('game_score_tb').select('*').eq('steam_app_id', gameData.steam_app_id).single();
 
       if (error || !data) {
-        console.error(error);
-        resultDiv.innerHTML = "<span class='spec-fail'>이 게임의 사양 데이터가 아직 등록되지 않았습니다.</span>";
-        return;
+        finalResDiv.innerHTML = "<span class='spec-fail'>사양 데이터가 없습니다.</span>"; return;
       }
 
-      let cpuStatus = (myCpuScore >= data.min_cpu_score) ? 
-                      `<span class="spec-pass">합격</span>` : `<span class="spec-fail">불합격</span>`;
+      // ★ [핵심 변경] 브랜드를 더 똑똑하게 찾는 함수
+      const getMatchingPart = (jsonObj, myModelName) => {
+        if (!jsonObj || Object.keys(jsonObj).length === 0) return { score: 0, name: "정보 없음" };
+        
+        // 1. 내 부품의 브랜드(파벌) 확인
+        let myBrandGroup = [];
+        const upperName = myModelName.toUpperCase();
+        
+        if (upperName.includes("INTEL") || upperName.includes("ARC")) {
+          myBrandGroup = ["INTEL", "ARC"];
+        } else if (upperName.includes("AMD") || upperName.includes("RYZEN") || upperName.includes("RADEON")) {
+          myBrandGroup = ["AMD", "RYZEN", "RADEON"];
+        } else if (upperName.includes("NVIDIA") || upperName.includes("GEFORCE") || upperName.includes("RTX") || upperName.includes("GTX")) {
+          myBrandGroup = ["NVIDIA", "GEFORCE"];
+        }
+
+        let bestMatch = { score: Infinity, name: "" };
+        let fallbackMatch = { score: Infinity, name: "" };
+
+        // 2. 사양 목록 뒤지기
+        for (const [key, score] of Object.entries(jsonObj)) {
+          const upperKey = key.toUpperCase();
+          
+          // (Fallback) 일단 전체 중에서 점수가 가장 낮은 것도 기억해둠 (혹시 맞는 브랜드가 없을 때 대비)
+          if (score < fallbackMatch.score) {
+            fallbackMatch = { score, name: key };
+          }
+
+          // (Brand Match) 내 브랜드 키워드 중 하나라도 포함되어 있으면 같은 편!
+          // 예: 내께 NVIDIA인데, 키값에 "GEFORCE"가 있으면 합격
+          let isBrandMatch = false;
+          if (myBrandGroup.length > 0) {
+             // 배열 안에 있는 단어(NVIDIA, GEFORCE 등) 중 하나라도 포함되면 true
+             if (myBrandGroup.some(brand => upperKey.includes(brand))) {
+               isBrandMatch = true;
+             }
+          }
+
+          if (isBrandMatch) {
+            // 같은 브랜드 중에서 점수가 가장 낮은 걸(가장 만만한 기준) 선택
+            if (score < bestMatch.score) {
+              bestMatch = { score, name: key };
+            }
+          }
+        }
+        
+        // 맞는 브랜드 찾았으면 그거 주고, 못 찾았으면 그냥 제일 낮은 거 줌
+        return (bestMatch.score !== Infinity) ? bestMatch : fallbackMatch;
+      };
+
+      const minCpu = getMatchingPart(data.min_cpu_score, myCpuName);
+      const recCpu = getMatchingPart(data.rec_cpu_score, myCpuName);
       
-      let gpuStatus = (myGpuScore >= data.min_gpu_score) ? 
-                      `<span class="spec-pass">합격</span>` : `<span class="spec-fail">불합격</span>`;
+      const minGpu = getMatchingPart(data.min_gpu_score, myGpuName);
+      const recGpu = getMatchingPart(data.rec_gpu_score, myGpuName);
 
-      let finalVerdict = "";
-      if (myCpuScore >= data.min_cpu_score && myGpuScore >= data.min_gpu_score) {
-        finalVerdict = `<h3 class="spec-pass" style="margin-top:15px;">🎉 플레이 가능! (최소사양 충족)</h3>`;
+      const createResultBox = (label, myScore, target) => {
+        const isPass = myScore >= target.score;
+        return `
+          <div style="margin-top:6px; padding:8px; border-radius:6px; background:${isPass ? '#ecfdf5' : '#fef2f2'}; border:1px solid ${isPass ? '#10b981' : '#ef4444'};">
+            <div style="display:flex; justify-content:space-between; font-size:13px;">
+              <strong>${label}</strong>
+              <strong style="color:${isPass ? '#059669' : '#dc2626'}">${isPass ? '✅ 합격' : '⚠️ 부족'}</strong>
+            </div>
+            <div style="font-size:12px; color:#555; margin-top:2px;">
+              내 점수: <b>${myScore.toLocaleString()}</b> / 필요: ${target.score.toLocaleString()}
+            </div>
+            <div style="font-size:11px; color:#888;">(기준: ${target.name})</div>
+          </div>
+        `;
+      };
+
+      cpuResDiv.innerHTML = `
+        ${createResultBox("최소 사양", myCpuScore, minCpu)}
+        ${createResultBox("권장 사양", myCpuScore, recCpu)}
+      `;
+
+      gpuResDiv.innerHTML = `
+        ${createResultBox("최소 사양", myGpuScore, minGpu)}
+        ${createResultBox("권장 사양", myGpuScore, recGpu)}
+      `;
+
+      const minPass = (myCpuScore >= minCpu.score) && (myGpuScore >= minGpu.score);
+      const recPass = (myCpuScore >= recCpu.score) && (myGpuScore >= recGpu.score);
+
+      if (recPass) {
+        finalResDiv.innerHTML = `<h2 class="spec-pass" style="margin:0;">🚀 완벽 구동 가능!</h2><p>권장 사양을 모두 충족합니다.</p>`;
+      } else if (minPass) {
+        finalResDiv.innerHTML = `<h2 class="spec-pass" style="margin:0; color:#d97706;">👌 플레이 가능</h2><p>최소 사양은 통과했습니다.</p>`;
       } else {
-        finalVerdict = `<h3 class="spec-fail" style="margin-top:15px;">😢 구동 불가 (사양 부족)</h3>`;
+        finalResDiv.innerHTML = `<h2 class="spec-fail" style="margin:0;">😢 업그레이드 필요</h2><p>사양이 부족합니다.</p>`;
       }
 
-      resultDiv.innerHTML = `
-        <h4>[ 분석 결과 ]</h4>
-        <p><strong>CPU:</strong> ${cpuStatus} (내 점수: ${myCpuScore} / 필요: ${data.min_cpu_score})</p>
-        <p><strong>GPU:</strong> ${gpuStatus} (내 점수: ${myGpuScore} / 필요: ${data.min_gpu_score})</p>
-        ${finalVerdict}
-      `;
     } catch (err) {
-      console.error('확인 오류:', err);
-      resultDiv.innerHTML = "<span class='spec-fail'>오류가 발생했습니다: " + err.message + "</span>";
+      console.error(err);
+      finalResDiv.innerHTML = "오류 발생: " + err.message;
     }
   }
 

@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Supabase Pop-Art Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* =========================================
+   1. 핵심 변수 및 기본 설정 (Core Variables)
+   ========================================= */
+:root {
+    /* --- 팝 아트 컬러 팔레트 --- */
+    --bg-color: #FFDE59;       /* 배경: 쨍한 노란색 */
+    --card-bg: #FFFFFF;        /* 카드 배경: 흰색 */
+    --ink: #000000;            /* 텍스트: 완전 검정 */
+    --ink-2: #333333;          /* 보조 텍스트 */
+    --brand: #54C1FF;          /* 포인트: 시안 블루 */
+    --accent-pink: #FF90E8;    /* 강조: 핑크 */
+    --line: #000000;           /* 테두리 색상 */
+    
+    /* --- 레이아웃 설정 --- */
+    --nav-h: 64px;
+    --border-w: 3px;           /* 굵은 테두리 */
+    --shadow-hard: 4px 4px 0px 0px #000000; /* 딱딱한 그림자 */
+    --radius: 0px;             /* 각진 모서리 */
+    
+    /* --- 상단 갤러리 설정 --- */
+    --center-w: clamp(320px, 45vw, 560px);
+    --center-h: 360px;
+    --side-ratio: 0.5;
+    --gap: 8px;
+    --edge-pad: clamp(14px, 2vw, 24px);
+    --side-w: calc(var(--center-w) * var(--side-ratio));
+}
+* { box-sizing: border-box; }
+html,body { height:100%; }
+body {
+    margin: 0;
+    font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--ink);
+    /* 도트 패턴 배경 */
+    background-image: radial-gradient(#000 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+header, .fixed-header {
+    position: sticky;
+    top: 0; z-index: 1000; height: var(--nav-h);
+    background: #fff; border-bottom: var(--border-w) solid var(--line);
+    box-shadow: 0 2px 0 #000; display:flex; align-items:center;
+}
+.nav { width:100%; max-width:1200px; margin:0 auto; padding:0 16px; display:flex; justify-content:space-between; align-items:center; }
+.brand { display:flex; gap:12px; align-items:center; }
+.brand .logo { width:40px; height:40px; border:3px solid #000; display:grid; place-items:center; background:var(--brand); font-weight:900; }
+.brand-name { font-weight:900; letter-spacing:-0.5px; text-transform:uppercase; }
+main { max-width:1200px; margin:28px auto; padding:16px; display:grid; grid-template-columns: 340px 1fr; gap:20px; }
+.card { background:var(--card-bg); border:var(--border-w) solid var(--line); box-shadow:var(--shadow-hard); padding:14px; border-radius:var(--radius); }
+
+/* 왼쪽 사이드 (온라인 유저, 설정) */
+.side-col { display:flex; flex-direction:column; gap:12px; }
+#onlineList { max-height:520px; overflow:auto; }
+.online-item { padding:10px; border-bottom:2px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.online-item strong { font-weight:900; }
+
+/* 채팅 영역 */
+.chat-col { display:flex; flex-direction:column; height:calc(100vh - 160px); }
+#messages { background:#fbfdff; padding:12px; border-radius:8px; overflow:auto; flex:1; }
+.msg { margin-bottom:12px; display:flex; gap:12px; }
+.msg .bubble { padding:10px 12px; border:var(--border-w) solid var(--line); max-width:70%; }
+.msg.own { justify-content:flex-end; }
+.msg.own .bubble { background:var(--brand); color:var(--ink); font-weight:800; }
+.msg.other .bubble { background:#fff; color:var(--ink); }
+.msg .meta { font-size:12px; color:var(--ink-2); margin-top:6px; }
+
+/* 입력 바 */
+.input-row { display:flex; gap:10px; margin-top:12px; align-items:center; }
+.input-row input[type=text] { flex:1; height:44px; padding:10px; border:3px solid var(--line); font-weight:700; }
+.input-row button { height:44px; padding:0 18px; background:var(--accent-pink); color:#fff; border:3px solid var(--line); font-weight:900; cursor:pointer; }
+
+/* 작은 버튼들 */
+.small-btn { padding:8px 10px; border:2px solid var(--line); background:#fff; cursor:pointer; font-weight:800; }
+
+@media (max-width: 900px) {
+    main { grid-template-columns: 1fr; padding:12px; }
+    .side-col { order:2; }
+    .chat-col { order:1; height:auto; }
+}
+
+header, .fixed-header {
+    position: sticky; /* fixed 대신 sticky 사용 권장 (레이아웃 겹침 방지) */
+    top: 0;
+    z-index: 1000;
+    height: var(--nav-h);
+    background: #fff;
+    border-bottom: var(--border-w) solid var(--line);
+    box-shadow: 0 2px 0 #000;
+    width: 100%;
+    padding: 0;
+}
+
+.nav {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 브랜드 로고 */
+.brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.brand .logo {
+    width: 32px; height: 32px;
+    border: 2px solid #000;
+    display: grid; place-items: center;
+    background: var(--brand);
+    color: #000; font-weight: 900;
+}
+.brand-name { font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; }
+
+/* 네비게이션 링크 */
+.nav-links { display: flex; gap: 18px; margin-left: 16px; white-space: nowrap; }
+.nav-links a { 
+    color: var(--ink); font-weight: 700; text-decoration: none; padding: 4px 8px;
+    border: 2px solid transparent; transition: transform 0.1s;
+}
+.nav-links a:hover {
+    background: #000; color: #fff; transform: rotate(-2deg);
+}
+
+/* 검색창 */
+.search { flex: 1; display: flex; justify-content: center; }
+.search-field { width: min(56vw, 560px); position: relative; }
+.search-field input {
+    width: 100%; height: 40px; padding: 0 14px 0 40px;
+    border: 2px solid #000; border-radius: 0; outline: none; background: #fff;
+    font-weight: 600; box-shadow: 3px 3px 0 #000; transition: all 0.1s;
+}
+.search-field input:focus { background: #fffff0; transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+.search-field .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; opacity: 1; fill: #000; }
+
+/* 유저 액션 */
+.actions { display: flex; gap: 10px; align-items: center; position: relative; }
+.link { color: var(--ink); text-decoration: none; font-weight: 700; }
+.link:hover { text-decoration: underline; }
+#user_profile {
+    width: 36px; height: 36px; border: 2px solid #000; background: #eee;
+    object-fit: cover; cursor: pointer; box-shadow: 2px 2px 0 #000;
+}
+
+/* 드롭다운 메뉴 */
+.menu {
+    position: absolute; right: 0; top: calc(100% + 10px);
+    width: 140px; background: #fff; border: 2px solid #000;
+    box-shadow: 4px 4px 0 #000; border-radius: 0;
+    overflow: hidden; max-height: 0; opacity: 0; transition: all 0.2s; z-index: 2000;
+}
+.menu.open { max-height: 400px; opacity: 1; padding: 0; }
+.menu ul { list-style: none; margin: 0; padding: 0; }
+.menu li { padding: 12px 16px; cursor: pointer; border-bottom: 2px solid #000; font-weight: 700; }
+.menu li:last-child { border-bottom: none; }
+.menu li:hover { background: var(--brand); color: #fff; }
+
+</style>
+</head>
+<body>
+ <!--header-->
+  <div id="header"></div>
+
+  <script type="module">
+    fetch('components/header.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('header').innerHTML = html;
+        const redirectURL = document.getElementById('redirect');
+        redirectURL.textContent = window.location.href; //로그인 후 복귀할 주소
+        // 외부 JS 추가 실행
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'scripts/header_user.js';
+        document.body.appendChild(script);
+      });
+  </script>
+  <!--/header-->
+
+<main>
+  <aside class="card side-col">
+    <h3 style="margin:0 0 8px 0; font-weight:900">Online Now</h3>
+    <div id="onlineList"><small class="hint">Loading...</small></div>
+    <hr style="border:0; border-top:3px solid var(--line); margin:12px 0">
+    <div>
+      <label style="font-weight:900">Display name</label>
+      <input id="displayName" type="text" style="width:100%; margin-top:8px; padding:10px; border:3px solid var(--line); font-weight:800" />
+      <div style="display:flex; gap:8px; margin-top:8px">
+        <button id="saveNameBtn" class="small-btn">Save</button>
+        <button id="leaveBtn" class="small-btn" style="background:var(--accent-pink); color:#fff">Leave</button>
+      </div>
+    </div>
+  </aside>
+
+  <section class="card chat-col">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+      <h3 style="margin:0; font-weight:900">Global Chat</h3>
+      <div style="font-size:13px; color:var(--ink-2)">Room: <strong>global</strong></div>
+    </div>
+
+    <div id="messages"></div>
+
+    <div class="input-row">
+      <input id="messageInput" type="text" placeholder="Type a message..." />
+      <button id="sendBtn">Send</button>
+    </div>
+  </section>
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// ====== CONFIG ======
+const SUPABASE_URL = 'https://qjusboguowpyamitokjh.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q';
+
+if (SUPABASE_URL.startsWith('REPLACE')) {
+  document.body.innerHTML = '<div style="padding:32px; font-family:Pretendard">Please set SUPABASE_URL and SUPABASE_ANON_KEY in the file source.</div>';
+  throw new Error('Supabase keys not configured');
+}
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+document.addEventListener('DOMContentLoaded', () => {
+  // =============================
+  // ✅ DOM 요소
+  // =============================
+  const messagesEl = document.getElementById('messages');
+  const onlineListEl = document.getElementById('onlineList');
+  const messageInput = document.getElementById('messageInput');
+  const displayNameInput = document.getElementById('displayName');
+
+  // =============================
+  // ✅ 전역 변수
+  // =============================
+  let clientId = null;
+  let displayName = null;
+
+  function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  // =============================
+  // ✅ 로그인 유저 / 게스트 처리
+  // =============================
+  async function loadMyProfile() {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+
+    if (user) {
+      clientId = user.id;
+
+      const { data, error: nickError } = await supabase
+        .from('Users')
+        .select('nickname')
+        .eq('user_id', clientId)
+        .single();
+
+      if (nickError || !data) {
+        console.error('Users nickname error:', nickError);
+        displayName = 'User-' + clientId.slice(0, 6); // fallback
+      } else {
+        displayName = data.nickname;
+      }
+    } else {
+      // 로그아웃 상태 → 게스트
+      clientId = localStorage.getItem('chat_client_id');
+      if (!clientId) {
+        clientId = uuidv4();
+        localStorage.setItem('chat_client_id', clientId);
+      }
+
+      displayName = localStorage.getItem('chat_display_name');
+      if (!displayName) {
+        displayName = 'Guest-' + clientId.slice(0, 6);
+        localStorage.setItem('chat_display_name', displayName);
+      }
+    }
+
+    displayNameInput.value = displayName;
+  }
+
+  // =============================
+  // ✅ Presence 처리
+  // =============================
+  async function setPresence() {
+    await supabase.from('user_presence').upsert({
+      user_id: clientId,
+      display_name: displayName,
+      last_seen: new Date().toISOString()
+    });
+  }
+
+  async function removePresence() {
+    await supabase.from('user_presence').delete().eq('user_id', clientId);
+  }
+
+  async function fetchOnline() {
+    const cutoff = new Date(Date.now() - 15000).toISOString();
+    const { data, error } = await supabase
+      .from('user_presence')
+      .select('user_id, display_name, last_seen')
+      .gt('last_seen', cutoff)
+      .order('last_seen', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    renderOnline(data || []);
+  }
+
+  function renderOnline(list) {
+    onlineListEl.innerHTML = '';
+    if (!list.length) {
+      onlineListEl.innerHTML = '<small class="hint">No users online</small>';
+      return;
+    }
+
+    list.forEach(u => {
+      const div = document.createElement('div');
+      div.className = 'online-item';
+      div.innerHTML = `
+        <strong>${escapeHtml(u.display_name || 'User')}</strong>
+        <div style="font-size:12px;color:var(--ink-2)">
+          ${new Date(u.last_seen).toLocaleTimeString()}
+        </div>
+      `;
+      onlineListEl.appendChild(div);
+    });
+  }
+
+  // =============================
+  // ✅ 메시지 처리
+  // =============================
+  async function loadMessages() {
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('room_id', 'global')
+      .order('created_at', { ascending: true })
+      .limit(200);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    renderMessages(data || []);
+    scrollMessagesToBottom();
+  }
+
+  function renderMessages(rows) {
+    messagesEl.innerHTML = '';
+    rows.forEach(r => appendMessageElement(r, false));
+  }
+
+  function appendMessageElement(msg, scroll = true) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + (msg.sender_id === clientId ? 'own' : 'other');
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = `
+      <div style="font-weight:900">${escapeHtml(msg.sender_name || 'User')}</div>
+      <div style="margin-top:6px">${escapeHtml(msg.message)}</div>
+      <div class='meta'>${new Date(msg.created_at).toLocaleString()}</div>
+    `;
+
+    div.appendChild(bubble);
+    messagesEl.appendChild(div);
+
+    if (scroll) scrollMessagesToBottom();
+  }
+
+  function scrollMessagesToBottom() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = messageInput.value && messageInput.value.trim();
+    if (!text) return;
+    messageInput.value = '';
+
+    const payload = {
+      room_id: 'global',
+      sender_id: clientId,
+      sender_name: displayName,
+      message: text
+    };
+
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .insert(payload)
+      .select();
+
+    if (error) console.error('send err', error);
+    if (data && data[0]) appendMessageElement(data[0]);
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"'`]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;' })[c]);
+  }
+
+  // =============================
+  // ✅ Realtime
+  // =============================
+  function setupRealtime() {
+    supabase
+      .channel('public:chat_messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.global` }, payload => {
+        if (payload && payload.new) appendMessageElement(payload.new);
+      })
+      .subscribe();
+
+    supabase
+      .channel('public:user_presence')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence' }, () => fetchOnline())
+      .subscribe();
+  }
+
+  // =============================
+  // ✅ Heartbeat
+  // =============================
+  function startHeartbeat() {
+    setPresence();
+    setInterval(() => setPresence(), 5000);
+    setInterval(() => fetchOnline(), 3000);
+  }
+
+  // =============================
+  // ✅ UI 이벤트
+  // =============================
+  document.getElementById('sendBtn').addEventListener('click', sendMessage);
+  messageInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+  document.getElementById('leaveBtn').addEventListener('click', async () => {
+    await removePresence();
+    alert('You left the chat.');
+  });
+
+  // =============================
+  // ✅ INIT
+  // =============================
+  (async function init() {
+    await loadMyProfile();
+    await setPresence();
+    await loadMessages();
+    await fetchOnline();
+    setupRealtime();
+    startHeartbeat();
+  })();
+
+  window.addEventListener('beforeunload', () => {
+    try { removePresence(); } catch (e) {}
+  });
+});
+</script>
+</body>
+</html>

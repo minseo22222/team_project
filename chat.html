@@ -421,19 +421,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // =============================
   // ✅ Realtime
   // =============================
-  function setupRealtime() {
-    supabase
-      .channel('public:chat_messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.global` }, payload => {
-        if (payload && payload.new) appendMessageElement(payload.new);
-      })
-      .subscribe();
+ async function setupRealtime() {
+  // 메시지 채널
+  await supabase.channel('chat_messages')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: 'room_id=eq.global' }, payload => {
+      if (payload?.new) appendMessageElement(payload.new);
+    })
+    .subscribe();
 
-    supabase
-      .channel('public:user_presence')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence' }, () => fetchOnline())
-      .subscribe();
-  }
+  // Presence 채널
+  await supabase.channel('user_presence')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence' }, () => fetchOnline())
+    .subscribe();
+}
 
   // =============================
   // ✅ Heartbeat
@@ -453,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('leaveBtn').addEventListener('click', async () => {
     await removePresence();
     alert('You left the chat.');
+    window.location.href="./home.html";
   });
 
   // =============================

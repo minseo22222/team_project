@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Supabase Pop-Art Chat</title>
+<title>채팅</title>
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 /* =========================================
@@ -222,41 +222,44 @@ header, .fixed-header {
 const SUPABASE_URL = 'https://qjusboguowpyamitokjh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q';
 
+// =============================
+// ✅ Supabase 초기화
+// =============================
 if (SUPABASE_URL.startsWith('REPLACE')) {
   document.body.innerHTML = '<div style="padding:32px; font-family:Pretendard">Please set SUPABASE_URL and SUPABASE_ANON_KEY in the file source.</div>';
   throw new Error('Supabase keys not configured');
 }
 
-const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// =============================
+// ✅ DOMContentLoaded
+// =============================
 document.addEventListener('DOMContentLoaded', () => {
-  // =============================
-  // ✅ DOM 요소
-  // =============================
+  // -----------------------------
+  // DOM 요소
+  // -----------------------------
   const messagesEl = document.getElementById('messages');
   const onlineListEl = document.getElementById('onlineList');
   const messageInput = document.getElementById('messageInput');
   const displayNameInput = document.getElementById('displayName');
 
-  // =============================
-  // ✅ 전역 변수
-  // =============================
+  // -----------------------------
+  // 전역 변수
+  // -----------------------------
   let clientId = null;
   let displayName = null;
 
   function uuidv4() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
       const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
   }
 
-  // =============================
-  // ✅ 로그인 유저 / 게스트 처리
-  // =============================
+  // -----------------------------
+  // 로그인 유저 / 게스트 처리
+  // -----------------------------
   async function loadMyProfile() {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData?.session?.user;
@@ -294,9 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
     displayNameInput.value = displayName;
   }
 
-  // =============================
-  // ✅ Presence 처리
-  // =============================
+  // -----------------------------
+  // Presence 처리
+  // -----------------------------
   async function setPresence() {
     await supabase.from('user_presence').upsert({
       user_id: clientId,
@@ -345,9 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // =============================
-  // ✅ 메시지 처리
-  // =============================
+  // -----------------------------
+  // 메시지 처리
+  // -----------------------------
   async function loadMessages() {
     const { data, error } = await supabase
       .from('chat_messages')
@@ -418,59 +421,69 @@ document.addEventListener('DOMContentLoaded', () => {
     return str.replace(/[&<>"'`]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;' })[c]);
   }
 
-  // =============================
-  // ✅ Realtime
-  // =============================
- async function setupRealtime() {
-  // 메시지 채널
-  await supabase.channel('chat_messages')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: 'room_id=eq.global' }, payload => {
+  // -----------------------------
+  // Realtime
+  // -----------------------------
+  async function setupRealtime() {
+    // 메시지 채널
+    const chatChannel = supabase.channel('public:chat_messages');
+    chatChannel.on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'chat_messages',
+      filter: 'room_id=eq.global'
+    }, payload => {
       if (payload?.new) appendMessageElement(payload.new);
-    })
-    .subscribe();
+    });
+    await chatChannel.subscribe();
 
-  // Presence 채널
-  await supabase.channel('user_presence')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence' }, () => fetchOnline())
-    .subscribe();
-}
+    // Presence 채널
+    const presenceChannel = supabase.channel('public:user_presence');
+    presenceChannel.on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'user_presence'
+    }, () => fetchOnline());
+    await presenceChannel.subscribe();
+  }
 
-  // =============================
-  // ✅ Heartbeat
-  // =============================
+  // -----------------------------
+  // Heartbeat
+  // -----------------------------
   function startHeartbeat() {
     setPresence();
     setInterval(() => setPresence(), 5000);
     setInterval(() => fetchOnline(), 3000);
   }
 
-  // =============================
-  // ✅ UI 이벤트
-  // =============================
+  // -----------------------------
+  // UI 이벤트
+  // -----------------------------
   document.getElementById('sendBtn').addEventListener('click', sendMessage);
   messageInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
 
   document.getElementById('leaveBtn').addEventListener('click', async () => {
     await removePresence();
     alert('You left the chat.');
-    window.location.href="./home.html";
+    window.location.href = "./home.html";
   });
 
-  // =============================
-  // ✅ INIT
-  // =============================
+  // -----------------------------
+  // INIT
+  // -----------------------------
   (async function init() {
     await loadMyProfile();
     await setPresence();
     await loadMessages();
     await fetchOnline();
-    setupRealtime();
+    await setupRealtime(); // await 필수
     startHeartbeat();
   })();
 
   window.addEventListener('beforeunload', () => {
     try { removePresence(); } catch (e) {}
   });
+
 });
 </script>
 </body>

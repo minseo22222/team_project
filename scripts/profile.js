@@ -13,6 +13,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const queryUserId = params.get('id');          // URL 로 온 user_id
   const loggedInId  = session?.user?.id || null; // 내가 로그인한 id
 
+
+  if(queryUserId != loggedInId)
+  {
+    document.getElementById('logout').style.display = 'none';
+  }
+
   // 보여줄 대상 유저 id (URL 우선, 없으면 내 것)
   const viewUserId = queryUserId || loggedInId;
 

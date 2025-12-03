@@ -217,7 +217,7 @@ header, .fixed-header {
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script>
+<script type="module">
 // ====== CONFIG ======
 const SUPABASE_URL = 'https://qjusboguowpyamitokjh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqdXNib2d1b3dweWFtaXRva2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwNjU5MDIsImV4cCI6MjA3NTY0MTkwMn0._AMM8U_rwX6RLAe1ACIvdC-047nnykVaQvnfcAuXZ0Q';
@@ -226,67 +226,43 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // ✅ Supabase 초기화
 // =============================
 if (SUPABASE_URL.startsWith('REPLACE')) {
-  document.body.innerHTML = '<div style="padding:32px; font-family:Pretendard">Please set SUPABASE_URL and SUPABASE_ANON_KEY in the file source.</div>';
+  document.body.innerHTML = '<div style="padding:32px;">Please set SUPABASE_URL and SUPABASE_ANON_KEY</div>';
   throw new Error('Supabase keys not configured');
 }
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// =============================
-// ✅ DOMContentLoaded
-// =============================
-document.addEventListener('DOMContentLoaded', () => {
-  // -----------------------------
-  // DOM 요소
-  // -----------------------------
+document.addEventListener('DOMContentLoaded', async () => {
   const messagesEl = document.getElementById('messages');
   const onlineListEl = document.getElementById('onlineList');
   const messageInput = document.getElementById('messageInput');
   const displayNameInput = document.getElementById('displayName');
 
-  // -----------------------------
-  // 전역 변수
-  // -----------------------------
   let clientId = null;
   let displayName = null;
 
   function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
   }
 
-  // -----------------------------
-  // 로그인 유저 / 게스트 처리
-  // -----------------------------
+  // --------------------
+  // 로그인 / 게스트
+  // --------------------
   async function loadMyProfile() {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData?.session?.user;
 
     if (user) {
       clientId = user.id;
-
-      const { data, error: nickError } = await supabase
-        .from('Users')
-        .select('nickname')
-        .eq('user_id', clientId)
-        .single();
-
-      if (nickError || !data) {
-        console.error('Users nickname error:', nickError);
-        displayName = 'User-' + clientId.slice(0, 6); // fallback
-      } else {
-        displayName = data.nickname;
-      }
+      const { data } = await supabase.from('Users').select('nickname').eq('user_id', clientId).single();
+      displayName = data?.nickname || 'User-' + clientId.slice(0, 6);
     } else {
-      // 로그아웃 상태 → 게스트
-      clientId = localStorage.getItem('chat_client_id');
-      if (!clientId) {
-        clientId = uuidv4();
-        localStorage.setItem('chat_client_id', clientId);
-      }
-
+      clientId = localStorage.getItem('chat_client_id') || uuidv4();
+      localStorage.setItem('chat_client_id', clientId);
       displayName = localStorage.getItem('chat_display_name');
       if (!displayName) {
         displayName = 'Guest-' + clientId.slice(0, 6);
@@ -297,9 +273,9 @@ document.addEventListener('DOMContentLoaded', () => {
     displayNameInput.value = displayName;
   }
 
-  // -----------------------------
-  // Presence 처리
-  // -----------------------------
+  // --------------------
+  // Presence
+  // --------------------
   async function setPresence() {
     await supabase.from('user_presence').upsert({
       user_id: clientId,
@@ -314,89 +290,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchOnline() {
     const cutoff = new Date(Date.now() - 15000).toISOString();
-    const { data, error } = await supabase
-      .from('user_presence')
+    const { data } = await supabase.from('user_presence')
       .select('user_id, display_name, last_seen')
       .gt('last_seen', cutoff)
       .order('last_seen', { ascending: false });
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
     renderOnline(data || []);
   }
 
   function renderOnline(list) {
     onlineListEl.innerHTML = '';
     if (!list.length) {
-      onlineListEl.innerHTML = '<small class="hint">No users online</small>';
+      onlineListEl.innerHTML = '<small>No users online</small>';
       return;
     }
-
     list.forEach(u => {
       const div = document.createElement('div');
       div.className = 'online-item';
-      div.innerHTML = `
-        <strong>${escapeHtml(u.display_name || 'User')}</strong>
-        <div style="font-size:12px;color:var(--ink-2)">
-          ${new Date(u.last_seen).toLocaleTimeString()}
-        </div>
-      `;
+      div.innerHTML = `<strong>${u.display_name}</strong> <div style="font-size:12px;color:gray">${new Date(u.last_seen).toLocaleTimeString()}</div>`;
       onlineListEl.appendChild(div);
     });
   }
 
-  // -----------------------------
-  // 메시지 처리
-  // -----------------------------
+  // --------------------
+  // 메시지
+  // --------------------
+  function appendMessageElement(msg, scroll = true) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + (msg.sender_id === clientId ? 'own' : 'other');
+    div.innerHTML = `
+      <div class="bubble">
+        <div style="font-weight:900">${msg.sender_name}</div>
+        <div style="margin-top:6px">${msg.message}</div>
+        <div class='meta'>${new Date(msg.created_at).toLocaleTimeString()}</div>
+      </div>`;
+    messagesEl.appendChild(div);
+    if (scroll) messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
   async function loadMessages() {
-    const { data, error } = await supabase
-      .from('chat_messages')
+    const { data } = await supabase.from('chat_messages')
       .select('*')
       .eq('room_id', 'global')
       .order('created_at', { ascending: true })
       .limit(200);
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    renderMessages(data || []);
-    scrollMessagesToBottom();
-  }
-
-  function renderMessages(rows) {
     messagesEl.innerHTML = '';
-    rows.forEach(r => appendMessageElement(r, false));
-  }
-
-  function appendMessageElement(msg, scroll = true) {
-    const div = document.createElement('div');
-    div.className = 'msg ' + (msg.sender_id === clientId ? 'own' : 'other');
-
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    bubble.innerHTML = `
-      <div style="font-weight:900">${escapeHtml(msg.sender_name || 'User')}</div>
-      <div style="margin-top:6px">${escapeHtml(msg.message)}</div>
-      <div class='meta'>${new Date(msg.created_at).toLocaleString()}</div>
-    `;
-
-    div.appendChild(bubble);
-    messagesEl.appendChild(div);
-
-    if (scroll) scrollMessagesToBottom();
-  }
-
-  function scrollMessagesToBottom() {
+    (data || []).forEach(msg => appendMessageElement(msg, false));
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
   async function sendMessage() {
-    const text = messageInput.value && messageInput.value.trim();
+    const text = messageInput.value.trim();
     if (!text) return;
     messageInput.value = '';
 
@@ -404,87 +347,76 @@ document.addEventListener('DOMContentLoaded', () => {
       room_id: 'global',
       sender_id: clientId,
       sender_name: displayName,
-      message: text
+      message: text,
+      created_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .insert(payload)
-      .select();
+    // 1️⃣ 내 화면에 바로 표시
+    appendMessageElement(payload);
 
-    if (error) console.error('send err', error);
-    if (data && data[0]) appendMessageElement(data[0]);
+    // 2️⃣ DB 저장 (다른 클라이언트에게 전송)
+    const { error } = await supabase.from('chat_messages').insert(payload);
+    if (error) console.error('sendMessage error', error);
   }
 
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>"'`]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;' })[c]);
-  }
-
-  // -----------------------------
+  // --------------------
   // Realtime
-  // -----------------------------
+  // --------------------
   async function setupRealtime() {
-    // 메시지 채널
-    const chatChannel = supabase.channel('public:chat_messages');
+    const chatChannel = supabase.channel('chat_messages_channel');
     chatChannel.on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
       table: 'chat_messages',
       filter: 'room_id=eq.global'
     }, payload => {
-      if (payload?.new) appendMessageElement(payload.new);
+      if (!payload?.new) return;
+      // 내 메시지는 이미 화면에 있으므로 제외
+      if (payload.new.sender_id !== clientId) appendMessageElement(payload.new);
     });
     await chatChannel.subscribe();
 
-    // Presence 채널
-    const presenceChannel = supabase.channel('public:user_presence');
+    const presenceChannel = supabase.channel('user_presence_channel');
     presenceChannel.on('postgres_changes', {
       event: '*',
       schema: 'public',
       table: 'user_presence'
-    }, () => fetchOnline());
+    }, fetchOnline);
     await presenceChannel.subscribe();
   }
 
-  // -----------------------------
+  // --------------------
   // Heartbeat
-  // -----------------------------
+  // --------------------
   function startHeartbeat() {
     setPresence();
-    setInterval(() => setPresence(), 5000);
-    setInterval(() => fetchOnline(), 3000);
+    setInterval(setPresence, 5000);
+    setInterval(fetchOnline, 3000);
   }
 
-  // -----------------------------
-  // UI 이벤트
-  // -----------------------------
+  // --------------------
+  // 이벤트
+  // --------------------
   document.getElementById('sendBtn').addEventListener('click', sendMessage);
   messageInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
-
   document.getElementById('leaveBtn').addEventListener('click', async () => {
     await removePresence();
-    alert('You left the chat.');
-    window.location.href = "./home.html";
+    window.location.href = './home.html';
   });
 
-  // -----------------------------
+  // --------------------
   // INIT
-  // -----------------------------
-  (async function init() {
-    await loadMyProfile();
-    await setPresence();
-    await loadMessages();
-    await fetchOnline();
-    await setupRealtime(); // await 필수
-    startHeartbeat();
-  })();
+  // --------------------
+  await loadMyProfile();
+  await setPresence();
+  await loadMessages();
+  await fetchOnline();
+  await setupRealtime();
+  startHeartbeat();
 
-  window.addEventListener('beforeunload', () => {
-    try { removePresence(); } catch (e) {}
-  });
-
+  window.addEventListener('beforeunload', () => { try { removePresence(); } catch(e) {} });
 });
+
 </script>
 </body>
 </html>

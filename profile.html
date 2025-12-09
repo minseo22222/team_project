@@ -508,6 +508,157 @@
     .steam-games-row .game-title {
       font-size: 15px;
     }
+
+    .profile-layout {
+      max-width: 920px;
+      /* ✅ 중앙 카드 폭 */
+      margin: 16px auto;
+      /* ✅ 완전 중앙 정렬 */
+      padding: 0 16px;
+      /* ✅ 좌우 균형 여백 */
+      display: block;
+      /* ✅ 2단 grid 완전 제거 */
+    }
+
+    /* ✅ 팔로우 목록 */
+    .follow-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ✅ 개별 팔로우 카드 */
+    .follow-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border: 2px solid #000;
+      background: #fff;
+      box-shadow: 3px 3px 0 #000;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .follow-user:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 #000;
+      background: var(--accent-pink);
+    }
+
+    /* ✅ 프로필 이미지 */
+    .follow-img {
+      width: 42px;
+      height: 42px;
+      border: 2px solid #000;
+      object-fit: cover;
+      background: #eee;
+    }
+
+    /* ✅ 이름 + 상태 */
+    .follow-info {
+      flex: 1;
+    }
+
+    .follow-name {
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .follow-status {
+      font-size: 12px;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    .follow-status.online {
+      color: #00a000;
+    }
+
+    .follow-status.offline {
+      color: #999;
+    }
+
+    .brutal-container {
+      padding-top: 0;
+      /* ✅ 혹시 남아있는 위 패딩 제거 */
+      margin-top: 0;
+    }
+
+    /* ✅ 하단 팔로잉 섹션 */
+    .follow-section {
+      margin-top: 40px;
+    }
+
+    /* ✅ 가로 스크롤 영역 */
+    .follow-row {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding: 8px 2px;
+    }
+
+    /* ✅ 가로형 카드 전용 */
+    .follow-user.horizontal {
+      min-width: 180px;
+      flex-shrink: 0;
+    }
+
+    .profile-header {
+      margin-bottom: 6px !important;
+    }
+
+    .follow-section {
+      margin-top: 2px !important;
+    }
+
+    .brutal-container {
+      margin-top: 2px !important;
+    }
+    .nickname-wrap {
+  display: flex;
+  align-items: center;  /* 수직 중앙 맞춤 */
+  gap: 8px;             /* 닉네임과 버튼 사이 간격 */
+}
+ /* 하트 버튼 - 사각형, 닉네임 크기에 맞춤 */
+.btn-heart {
+  font-size: 24px;          /* 닉네임 32px에 비례 */
+  width: 40px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FF4C4C;  /* 기본 붉은색 */
+  color: #fff;
+  border: 2px solid #B22222;  /* 붉은 윤곽선 */
+  border-radius: 6px;          /* 살짝 둥근 사각형 */
+  cursor: pointer;
+  font-weight: 900;
+  box-shadow: 3px 3px 0 #000;
+  box-sizing: border-box;    /* border 포함 크기 계산 */
+  transition: all 0.1s;
+}
+
+/* 호버 효과 */
+.btn-heart:hover {
+  transform: translate(1px,1px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+/* 팔로잉 상태 */
+.btn-heart.following {
+  background-color: #FF4C4C;  /* 기본 붉은색 */
+  color: #fff;
+  border: 2px solid #fff;  /* border가 버튼색과 같아서 글자 공간 확보 */
+}
+
+/* 비팔로잉 상태 */
+.btn-heart.not-following {
+  background-color: #FF4C4C;  /* 기본 붉은색 */
+  color: #fff;             /* 하트 색상 */
+  border: 2px solid #8B0000;  /* 붉은 윤곽선 */
+  
+}
   </style>
 </head>
 
@@ -525,66 +676,88 @@
         document.body.appendChild(script);
       });
   </script>
+  <!-- ✅ 전체 2단 레이아웃 -->
+  <div class="profile-layout">
 
-  <div class="brutal-container">
+    <!-- ✅ 중앙: 기존 프로필 전체 -->
+    <div class="brutal-container">
 
-    <!-- 상단 프로필 카드 -->
-    <div class="brutal-card profile-header">
-      <img id="profile_img" class="profile-img" src="/default_profile.png" alt="프로필 사진">
+      <!-- ✅ 상단 프로필 카드 -->
+      <div class="brutal-card profile-header">
+        <img id="profile_img" class="profile-img" src="/default_profile.png" alt="프로필 사진">
 
-      <div class="header-info">
-        <h2 id="nickname" class="nickname">PlayerOne</h2>
-        <div id="email" class="email">example@gamecritic.com</div>
-
-        <div class="action-buttons">
-          <button id="editProfileBtn" class="btn btn-primary">내 정보 수정</button>
-          <button id="logout" class="btn btn-secondary">로그아웃</button>
+       <div class="header-info">
+  <div class="nickname-wrap">
+    <h2 id="nickname" class="nickname">PlayerOne</h2>
+    <button id="followBtn" class="btn-heart" title="Follow/Unfollow">♡</button>
+  </div>
+          <div id="email" class="email">example@gamecritic.com</div>
+          
+          <div class="action-buttons">
+            <button id="editProfileBtn" class="btn btn-primary">내 정보 수정</button>
+            <button id="logout" class="btn btn-secondary">로그아웃</button>
+          </div>
+          
         </div>
       </div>
+
+
+      <!-- ✅ 본문 -->
+      <div class="brutal-card content-section">
+
+
+        <!-- 자기소개 -->
+        <div class="section-label">MY BIO (자기소개)</div>
+        <div id="showMyself" class="bio-text">
+          작성된 자기소개가 없습니다. 자기소개를 입력해보세요!
+        </div>
+        <!-- ✅ 팔로잉 목록 (하단 가로형) -->
+        <br><br>
+        <div class="section-label">FOLLOWING♥</div>
+        <div class="brutal-card follow-section">
+          <div class="follow-row" id="follow-row">
+          </div>
+        </div>
+
+        <br><br>
+
+        <!-- 🔵 Steam 최근 플레이 -->
+        <div class="section-label" style="background-color: var(--accent-blue); color: black;">
+          Steam 최근 플레이
+        </div>
+        <div class="steam-section steam-recent-section">
+          <div id="steam-recent-two" class="steam-recent-two-row"></div>
+        </div>
+
+        <br>
+
+        <!-- ⚪ Steam 전체 라이브러리 -->
+        <div class="section-label"
+          style="background-color:#ffffff; color:black; border:2px solid #000; box-shadow:2px 2px 0 #000;">
+          Steam 라이브러리
+        </div>
+        <div class="steam-section steam-library-section">
+          <div class="steam-header-row">
+            <div class="steam-title">내 Steam 라이브러리</div>
+            <div class="steam-count" id="steam-total-games">총 보유 게임 0개</div>
+          </div>
+          <div id="steamRecent" class="steam-games-row"></div>
+        </div>
+
+        <br><br>
+
+        <!-- 나의 리뷰 -->
+        <div class="section-label" style="background-color: var(--accent-pink); color: black;">
+          MY REVIEWS
+        </div>
+        <div id="rateList" class="review-grid"></div>
+
+      </div>
+
     </div>
 
-    <!-- 아래 내용 카드: BIO + Steam + Reviews -->
-    <div class="brutal-card content-section">
-      <!-- 자기소개 -->
-      <div class="section-label">MY BIO (자기소개)</div>
-      <div id="showMyself" class="bio-text">
-        작성된 자기소개가 없습니다. 자기소개를 입력해보세요!
-      </div>
 
-      <br><br>
 
-      <!-- 🔵 ① Steam 최근 플레이 (최근 2주 기준) -->
-      <div class="section-label" style="background-color: var(--accent-blue); color: black;">
-        Steam 최근 플레이
-      </div>
-      <div class="steam-section steam-recent-section">
-        <div id="steam-recent-two" class="steam-recent-two-row">
-          <!-- JS 로 최근 2개 게임 카드가 들어옵니다 -->
-        </div>
-      </div>
-
-      <br>
-
-      <!-- ⚪ ② Steam 전체 라이브러리 (가로 스크롤) -->
-      <div class="section-label" style="background-color:#ffffff; color:black; border:2px solid #000; box-shadow:2px 2px 0 #000;">
-        Steam 라이브러리
-      </div>
-      <div class="steam-section steam-library-section">
-        <div class="steam-header-row">
-          <div class="steam-title">내 Steam 라이브러리</div>
-          <div class="steam-count" id="steam-total-games">총 보유 게임 0개</div>
-        </div>
-        <div id="steamRecent" class="steam-games-row">
-          <!-- JS 로 전체 게임 카드가 들어옵니다 -->
-        </div>
-      </div>
-
-      <br><br>
-
-      <!-- 나의 리뷰 -->
-      <div class="section-label" style="background-color: var(--accent-pink); color: black;">MY REVIEWS</div>
-      <div id="rateList" class="review-grid"></div>
-    </div>
   </div>
 
   <script type="module" src="/scripts/profile.js"></script>

@@ -4,7 +4,7 @@ import supabase from './supabase.js';
 // ✅ Edge Function 슬러그 (Supabase Edge Functions > Details 화면의 Slug)
 const EDGE_FUNC_SLUG = 'hyper-api';
 
-
+let isFollowing = false;
 // 페이지 로드 시 진입점
 document.addEventListener('DOMContentLoaded', async () => {
   const { data: { session } } = await supabase.auth.getSession();
@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if(queryUserId != loggedInId)
   {
     document.getElementById('logout').style.display = 'none';
+  }
+  else{
+    document.getElementById('followBtn').style.display = 'none';
   }
 
   // 보여줄 대상 유저 id (URL 우선, 없으면 내 것)
@@ -37,6 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   ]);
 
   setupButtons(session, viewUserId);
+  loadFollowState();
 });
 
 
@@ -416,3 +420,141 @@ function esc(str) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 }
+
+
+//==========================이후추가코드===========================
+
+const followBtn = document.getElementById('followBtn');
+
+
+function updateFollowButton() {
+  if (isFollowing) {
+    followBtn.classList.add('following');
+    followBtn.classList.remove('not-following');
+    followBtn.textContent = '♥'; // 채워진 하트
+  } else {
+    followBtn.classList.add('not-following');
+    followBtn.classList.remove('following');
+    followBtn.textContent = '♡'; // 빈 하트
+  }
+}
+async function loadFollowState() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const params = new URLSearchParams(window.location.search);
+
+  const currentUserId = session?.user?.id || null;
+  const profileUserId = params.get('id');
+
+  if (!currentUserId || !profileUserId) return;
+
+  const { data, error } = await supabase
+    .from('follows')
+    .select('*')
+    .eq('user_id', currentUserId)
+    .eq('following_user_id', profileUserId)
+    .maybeSingle(); // ✅ 에러 방지
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+    isFollowing = !!data;
+   updateFollowButton(); 
+}
+
+// 2️⃣ 버튼 클릭 이벤트
+followBtn.addEventListener('click', async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const params = new URLSearchParams(window.location.search);
+  const currentUserId = session?.user?.id || null; 
+  const profileUserId = params.get('id'); 
+  if (!currentUserId || !profileUserId) return;
+
+  if (!isFollowing) {
+    // 팔로우 추가
+    const { error } = await supabase
+      .from('follows')
+      .insert([{ user_id: currentUserId, following_user_id: profileUserId }]);
+
+    if (error) {
+      console.error('팔로우 실패', error);
+      return;
+    }
+    alert("팔로우 성공!");
+    isFollowing = true;
+  } else {
+    // 팔로우 삭제
+    const { error } = await supabase
+      .from('follows')
+      .delete()
+      .eq('user_id', currentUserId)
+      .eq('following_user_id', profileUserId);
+
+    if (error) {
+      console.error('언팔로우 실패', error);
+      return;
+    }
+
+    isFollowing = false;
+  }
+
+  updateFollowButton();
+});
+
+async function loadFollowing() {
+  const params = new URLSearchParams(window.location.search);
+  const followRow = document.getElementById('follow-row');
+  const profileUserId = params.get('id'); 
+  // 1️⃣ follows 테이블에서 해당 유저가 팔로우 중인 목록 가져오기
+  const { data: follows, error: followError } = await supabase
+    .from('follows')
+    .select('following_user_id')
+    .eq('user_id', profileUserId);
+
+  if (followError) {
+    console.error(followError);
+    return;
+  }
+   if (!follows || follows.length === 0) {
+    followRow.innerHTML = `<div class="follow-row">팔로우중인 친구가 없습니다!</div>`;
+    return;
+  }
+    
+ // 2️⃣ Users 테이블에서 팔로잉 유저 정보 가져오기
+  const followingIds = follows.map(f => f.following_user_id);
+
+  const { data: users, error: userError } = await supabase
+    .from('Users')
+    .select('user_id, nickname, profile_image_url')
+    .in('user_id', followingIds);
+
+  if (userError) {
+    console.error(userError);
+    return;
+  }
+
+  // 3️⃣ HTML 생성
+  followRow.innerHTML = ''; // 초기화
+ users.forEach(user => {
+  const div = document.createElement('div');
+  div.className = 'follow-user horizontal';
+
+  div.style.cursor = 'pointer';
+  div.addEventListener('click', () => {
+    window.location.href = `profile.html?id=${user.user_id}`;
+  });
+
+  div.innerHTML = `
+    <img src="${user.profile_image_url || 'https://via.placeholder.com/40'}" class="follow-img">
+    <div class="follow-info">
+      <div class="follow-name">${user.nickname}</div>
+    </div>
+  `;
+
+  followRow.appendChild(div);
+});
+ 
+}
+
+// 페이지 로드 시 실행
+loadFollowing();

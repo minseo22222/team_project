@@ -501,60 +501,106 @@ followBtn.addEventListener('click', async () => {
   updateFollowButton();
 });
 
-async function loadFollowing() {
+
+let currentMode = "following"; // 기본값
+
+const tabFollowing = document.getElementById('tab-following');
+const tabFollowed = document.getElementById('tab-followed');
+
+tabFollowing.addEventListener('click', () => {
+  currentMode = "following";
+  setTabUI();
+  loadFollowList();
+});
+
+tabFollowed.addEventListener('click', () => {
+  currentMode = "followed";
+  setTabUI();
+  loadFollowList();
+});
+
+function setTabUI() {
+  if (currentMode === "following") {
+    tabFollowing.classList.add("active");
+    tabFollowing.classList.remove("inactive");
+    tabFollowed.classList.add("inactive");
+    tabFollowed.classList.remove("active");
+  } else {
+    tabFollowed.classList.add("active");
+    tabFollowed.classList.remove("inactive");
+    tabFollowing.classList.add("inactive");
+    tabFollowing.classList.remove("active");
+  }
+}
+
+// ✅ FOLLOWING / FOLLOWED 공용 로드 함수
+async function loadFollowList() {
   const params = new URLSearchParams(window.location.search);
   const followRow = document.getElementById('follow-row');
   const profileUserId = params.get('id'); 
-  // 1️⃣ follows 테이블에서 해당 유저가 팔로우 중인 목록 가져오기
-  const { data: follows, error: followError } = await supabase
-    .from('follows')
-    .select('following_user_id')
-    .eq('user_id', profileUserId);
 
-  if (followError) {
-    console.error(followError);
+  followRow.innerHTML = "";
+
+  let follows = [];
+
+  // ✅ 내가 팔로우한 사람 (FOLLOWING)
+  if (currentMode === "following") {
+    const { data, error } = await supabase
+      .from('follows')
+      .select('following_user_id')
+      .eq('user_id', profileUserId);
+
+    if (error) return console.error(error);
+    follows = data;
+  }
+
+  // ✅ 나를 팔로우한 사람 (FOLLOWED)
+  if (currentMode === "followed") {
+    const { data, error } = await supabase
+      .from('follows')
+      .select('user_id')
+      .eq('following_user_id', profileUserId);
+
+    if (error) return console.error(error);
+    follows = data;
+  }
+
+  if (!follows || follows.length === 0) {
+    followRow.innerHTML = `<div class="follow-row">표시할 유저가 없습니다!</div>`;
     return;
   }
-   if (!follows || follows.length === 0) {
-    followRow.innerHTML = `<div class="follow-row">팔로우중인 친구가 없습니다!</div>`;
-    return;
-  }
-    
- // 2️⃣ Users 테이블에서 팔로잉 유저 정보 가져오기
-  const followingIds = follows.map(f => f.following_user_id);
 
-  const { data: users, error: userError } = await supabase
+  const userIds = follows.map(f =>
+    currentMode === "following" ? f.following_user_id : f.user_id
+  );
+
+  const { data: users, error } = await supabase
     .from('Users')
     .select('user_id, nickname, profile_image_url')
-    .in('user_id', followingIds);
+    .in('user_id', userIds);
 
-  if (userError) {
-    console.error(userError);
-    return;
-  }
+  if (error) return console.error(error);
 
-  // 3️⃣ HTML 생성
-  followRow.innerHTML = ''; // 초기화
- users.forEach(user => {
-  const div = document.createElement('div');
-  div.className = 'follow-user horizontal';
+  users.forEach(user => {
+    const div = document.createElement('div');
+    div.className = 'follow-user horizontal';
 
-  div.style.cursor = 'pointer';
-  div.addEventListener('click', () => {
-    window.location.href = `profile.html?id=${user.user_id}`;
+    div.style.cursor = 'pointer';
+    div.addEventListener('click', () => {
+      window.location.href = `profile.html?id=${user.user_id}`;
+    });
+
+    div.innerHTML = `
+      <img src="${user.profile_image_url || 'https://via.placeholder.com/40'}" class="follow-img">
+      <div class="follow-info">
+        <div class="follow-name">${user.nickname}</div>
+      </div>
+    `;
+
+    followRow.appendChild(div);
   });
-
-  div.innerHTML = `
-    <img src="${user.profile_image_url || 'https://via.placeholder.com/40'}" class="follow-img">
-    <div class="follow-info">
-      <div class="follow-name">${user.nickname}</div>
-    </div>
-  `;
-
-  followRow.appendChild(div);
-});
- 
 }
 
-// 페이지 로드 시 실행
-loadFollowing();
+// ✅ 페이지 로드시 기본 FOLLOWING 실행
+setTabUI();
+loadFollowList();

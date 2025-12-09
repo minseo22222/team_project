@@ -615,50 +615,83 @@
     .brutal-container {
       margin-top: 2px !important;
     }
+
     .nickname-wrap {
-  display: flex;
-  align-items: center;  /* 수직 중앙 맞춤 */
-  gap: 8px;             /* 닉네임과 버튼 사이 간격 */
-}
- /* 하트 버튼 - 사각형, 닉네임 크기에 맞춤 */
-.btn-heart {
-  font-size: 24px;          /* 닉네임 32px에 비례 */
-  width: 40px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #FF4C4C;  /* 기본 붉은색 */
-  color: #fff;
-  border: 2px solid #B22222;  /* 붉은 윤곽선 */
-  border-radius: 6px;          /* 살짝 둥근 사각형 */
-  cursor: pointer;
-  font-weight: 900;
-  box-shadow: 3px 3px 0 #000;
-  box-sizing: border-box;    /* border 포함 크기 계산 */
-  transition: all 0.1s;
-}
+      display: flex;
+      align-items: center;
+      /* 수직 중앙 맞춤 */
+      gap: 8px;
+      /* 닉네임과 버튼 사이 간격 */
+    }
 
-/* 호버 효과 */
-.btn-heart:hover {
-  transform: translate(1px,1px);
-  box-shadow: 1px 1px 0 #000;
-}
+    /* 하트 버튼 - 사각형, 닉네임 크기에 맞춤 */
+    .btn-heart {
+      font-size: 24px;
+      /* 닉네임 32px에 비례 */
+      width: 40px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #FF4C4C;
+      /* 기본 붉은색 */
+      color: #fff;
+      border: 2px solid #B22222;
+      /* 붉은 윤곽선 */
+      border-radius: 6px;
+      /* 살짝 둥근 사각형 */
+      cursor: pointer;
+      font-weight: 900;
+      box-shadow: 3px 3px 0 #000;
+      box-sizing: border-box;
+      /* border 포함 크기 계산 */
+      transition: all 0.1s;
+    }
 
-/* 팔로잉 상태 */
-.btn-heart.following {
-  background-color: #FF4C4C;  /* 기본 붉은색 */
-  color: #fff;
-  border: 2px solid #fff;  /* border가 버튼색과 같아서 글자 공간 확보 */
-}
+    /* 호버 효과 */
+    .btn-heart:hover {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 #000;
+    }
 
-/* 비팔로잉 상태 */
-.btn-heart.not-following {
-  background-color: #FF4C4C;  /* 기본 붉은색 */
-  color: #fff;             /* 하트 색상 */
-  border: 2px solid #8B0000;  /* 붉은 윤곽선 */
-  
-}
+    /* 팔로잉 상태 */
+    .btn-heart.following {
+      background-color: #FF4C4C;
+      /* 기본 붉은색 */
+      color: #fff;
+      border: 2px solid #fff;
+      /* border가 버튼색과 같아서 글자 공간 확보 */
+    }
+
+    /* 비팔로잉 상태 */
+    .btn-heart.not-following {
+      background-color: #FF4C4C;
+      /* 기본 붉은색 */
+      color: #fff;
+      /* 하트 색상 */
+      border: 2px solid #8B0000;
+      /* 붉은 윤곽선 */
+
+    }
+
+    .follow-tab {
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .follow-tab.inactive {
+      opacity: 0.3;
+    }
+
+    .follow-tab.active {
+      opacity: 1;
+    }
+
+    .tab-divider {
+      margin: 0 5px;
+      opacity: 0.5;
+    }
   </style>
 </head>
 
@@ -686,18 +719,18 @@
       <div class="brutal-card profile-header">
         <img id="profile_img" class="profile-img" src="/default_profile.png" alt="프로필 사진">
 
-       <div class="header-info">
-  <div class="nickname-wrap">
-    <h2 id="nickname" class="nickname">PlayerOne</h2>
-    <button id="followBtn" class="btn-heart" title="Follow/Unfollow">♡</button>
-  </div>
+        <div class="header-info">
+          <div class="nickname-wrap">
+            <h2 id="nickname" class="nickname">PlayerOne</h2>
+            <button id="followBtn" class="btn-heart" title="Follow/Unfollow">♡</button>
+          </div>
           <div id="email" class="email">example@gamecritic.com</div>
-          
+
           <div class="action-buttons">
             <button id="editProfileBtn" class="btn btn-primary">내 정보 수정</button>
             <button id="logout" class="btn btn-secondary">로그아웃</button>
           </div>
-          
+
         </div>
       </div>
 
@@ -713,10 +746,15 @@
         </div>
         <!-- ✅ 팔로잉 목록 (하단 가로형) -->
         <br><br>
-        <div class="section-label">FOLLOWING♥</div>
+
+        <div class="section-label">
+          <span id="tab-following" class="follow-tab active">FOLLOWING</span>
+          <span class="tab-divider"> / </span>
+          <span id="tab-followed" class="follow-tab inactive">FOLLOWED BY</span>
+        </div>
+
         <div class="brutal-card follow-section">
-          <div class="follow-row" id="follow-row">
-          </div>
+          <div class="follow-row" id="follow-row"></div>
         </div>
 
         <br><br>

@@ -6,6 +6,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>커뮤니티</title>
     <link rel="stylesheet" href="./css/style_search.css">
+    <style>
+        .caption-box {
+            margin-bottom: 0.5rem;
+        }
+        
+        .sort-options {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .sort-options label {
+            font-size: 1rem;
+            color: #000;
+            font-weight: 700;
+            background-color: #fff;
+            padding: 0.6rem 1rem;
+            border: 2px solid #000;
+            border-radius: 0;
+            box-shadow: 3px 3px 0 #000;
+        }
+        
+        .sort-options select {
+            padding: 0.6rem 1.2rem;
+            border: 2px solid #000;
+            border-radius: 0;
+            background-color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #000;
+            box-shadow: 3px 3px 0 #000;
+            outline: none;
+        }
+        
+        .sort-options select:hover {
+            background-color: #54C1FF;
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 #000;
+        }
+        
+        .sort-options select:focus {
+            background-color: #FFFFF0;
+        }
+        
+        .sort-options select:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 #000;
+        }
+    </style>
 </head>
 
 <body>
@@ -18,8 +70,7 @@
             .then(html => {
                 document.getElementById('header').innerHTML = html;
                 const redirectURL = document.getElementById('redirect');
-                redirectURL.textContent = window.location.href; //로그인 후 복귀할 주소
-                // 외부 JS 추가 실행
+                redirectURL.textContent = window.location.href;
                 const script = document.createElement('script');
                 script.type = 'module';
                 script.src = 'scripts/header_user.js';
@@ -30,6 +81,14 @@
     <main>
         <div class="caption-box">
             <h3 class="caption">[커뮤니티]게임을 찾고 유저들과 소통하세요.</h3>
+        </div>
+        <div class="sort-options">
+            <label for="sortSelect">정렬:</label>
+            <select id="sortSelect">
+                <option value="default">기본순</option>
+                <option value="rating">추천 많은 순</option>
+                <option value="name">이름순</option>
+            </select>
         </div>
          <section class="section">
             <div class="game-grid" id="gameGrid"></div>
@@ -58,16 +117,20 @@
         <script type="module">
             import supabase from './scripts/supabase.js';
 
-
             /*게임들 반환하는 함수*/
-            async function loadGames() {
-                const { data } = await supabase
-                    .from('Games')
-                    .select('*');
+            async function loadGames(sortType = 'default') {
+                let query = supabase.from('Games').select('*');
+                
+                // 정렬 조건 추가
+                if (sortType === 'rating') {
+                    query = query.order('avg_rating', { ascending: false, nullsFirst: false });
+                } else if (sortType === 'name') {
+                    query = query.order('title', { ascending: true });
+                }
+                
+                const { data } = await query;
                 return data;
             }
-
-
 
             /*별점 그려주는 함수*/
             function setRating(score, rateEl) {
@@ -76,11 +139,9 @@
                     stars.forEach((star, index) => {
                         star.classList.remove('full', 'half');
                         if (score >= index + 1) {
-                            star.classList.add('full'); // 완전 채움
+                            star.classList.add('full');
                         } else if (score >= index + 0.5) {
-                            star.classList.add('half'); // 반만 채움
-                        } else {
-                            // 그대로 빈 별
+                            star.classList.add('half');
                         }
                     });
                 }
@@ -88,7 +149,6 @@
                     console.log("평점이 NULL!!");
                 }
             }
-
 
             /*데이터를 Card규격에 맞게 출력하고 정보 페이지로 연결하는 함수*/
             function renderGameData(games) {
@@ -123,12 +183,17 @@
             }
 
             /*게임들 출력하는 함수*/
-            async function renderGames() {
-                const data = await loadGames();
+            async function renderGames(sortType = 'default') {
+                const data = await loadGames(sortType);
                 if (data && data.length > 0) {
                     renderGameData(data)
                 }
             }
+
+            /*정렬 옵션 변경 이벤트*/
+            document.getElementById('sortSelect').addEventListener('change', (e) => {
+                renderGames(e.target.value);
+            });
 
             /*최종 출력*/
             renderGames();

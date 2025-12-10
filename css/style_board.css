@@ -198,3 +198,55 @@
 .login-notice a:hover {
     text-decoration: underline;
 }
+
+.board-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .sort-options {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    
+    .sort-options label {
+      font-size: 1rem;
+      color: #000;
+      font-weight: 700;
+      background-color: #fff;
+      padding: 0.6rem 1rem;
+      border: 2px solid #000;
+      border-radius: 0;
+      box-shadow: 3px 3px 0 #000;
+    }
+    
+    .sort-options select {
+      padding: 0.6rem 1.2rem;
+      border: 2px solid #000;
+      border-radius: 0;
+      background-color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #000;
+      box-shadow: 3px 3px 0 #000;
+      outline: none;
+    }
+    
+    .sort-options select:hover {
+      background-color: #54C1FF;
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 #000;
+    }
+    
+    .sort-options select:focus {
+      background-color: #FFFFF0;
+    }
+    
+    .sort-options select:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 #000;
+    }

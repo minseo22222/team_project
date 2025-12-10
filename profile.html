@@ -62,31 +62,37 @@
       gap: 20px;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: #000;
-    }
+    .brand { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    white-space: nowrap; 
+}
 
-    .brand .logo {
-      width: 32px;
-      height: 32px;
-      border: 2px solid #000;
-      display: grid;
-      place-items: center;
-      background: var(--brand);
-      color: #000;
-      font-weight: 900;
-      border-radius: 6px;
-    }
+/* 로고 틀 (상자) */
+.brand .logo {
+    width: 32px; 
+    height: 32px;
+    /* border: 2px solid #000;  <-- 테두리가 싫으면 이 줄을 지우세요 */
+    border-radius: 4px;      /* (선택) 모서리를 살짝 둥글게 */
+    overflow: hidden;        /* 이미지가 둥근 모서리 밖으로 튀어나가지 않게 함 */
+}
 
-    .brand-name {
-      font-weight: 900;
-      font-size: 20px;
-      text-transform: uppercase;
-    }
+/* 이미지 자체 설정 (추가된 부분) */
+.brand .logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 중요: 비율 유지하며 꽉 채우기 (양옆 여백 잘림) */
+    display: block;    /* 이미지 하단 미세한 공백 제거 */
+
+    transform: scale(2);
+}
+
+.brand-name { 
+    font-weight: 900; 
+    letter-spacing: -0.5px; 
+    text-transform: uppercase; 
+}
 
     .nav-links {
       display: flex;

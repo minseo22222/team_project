@@ -51,9 +51,7 @@ header, .fixed-header {
     box-shadow: 0 2px 0 #000; display:flex; align-items:center;
 }
 .nav { width:100%; max-width:1200px; margin:0 auto; padding:0 16px; display:flex; justify-content:space-between; align-items:center; }
-.brand { display:flex; gap:12px; align-items:center; }
-.brand .logo { width:40px; height:40px; border:3px solid #000; display:grid; place-items:center; background:var(--brand); font-weight:900; }
-.brand-name { font-weight:900; letter-spacing:-0.5px; text-transform:uppercase; }
+
 main { max-width:1200px; margin:28px auto; padding:16px; display:grid; grid-template-columns: 340px 1fr; gap:20px; }
 .card { background:var(--card-bg); border:var(--border-w) solid var(--line); box-shadow:var(--shadow-hard); padding:14px; border-radius:var(--radius); }
 
@@ -110,15 +108,37 @@ header, .fixed-header {
 }
 
 /* 브랜드 로고 */
-.brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
-.brand .logo {
-    width: 32px; height: 32px;
-    border: 2px solid #000;
-    display: grid; place-items: center;
-    background: var(--brand);
-    color: #000; font-weight: 900;
+.brand { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    white-space: nowrap; 
 }
-.brand-name { font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; }
+
+/* 로고 틀 (상자) */
+.brand .logo {
+    width: 32px; 
+    height: 32px;
+    /* border: 2px solid #000;  <-- 테두리가 싫으면 이 줄을 지우세요 */
+    border-radius: 4px;      /* (선택) 모서리를 살짝 둥글게 */
+    overflow: hidden;        /* 이미지가 둥근 모서리 밖으로 튀어나가지 않게 함 */
+}
+
+/* 이미지 자체 설정 (추가된 부분) */
+.brand .logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 중요: 비율 유지하며 꽉 채우기 (양옆 여백 잘림) */
+    display: block;    /* 이미지 하단 미세한 공백 제거 */
+
+    transform: scale(2);
+}
+
+.brand-name { 
+    font-weight: 900; 
+    letter-spacing: -0.5px; 
+    text-transform: uppercase; 
+}
 
 /* 네비게이션 링크 */
 .nav-links { display: flex; gap: 18px; margin-left: 16px; white-space: nowrap; }

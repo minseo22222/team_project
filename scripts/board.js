@@ -63,9 +63,9 @@ async function checkAuthStatus() {
 }
 
 // 게시글 목록 로드
-async function loadPosts() {
+async function loadPosts(sortType = 'latest') {
     try {
-        const { data, error } = await supabase
+        let query = supabase
             .from('board_posts')
             .select(`
             *,
@@ -74,8 +74,16 @@ async function loadPosts() {
               profile_image_url
             )
           `)
-            .eq('game_id', gameId)
-            .order('created_at', { ascending: false });
+            .eq('game_id', gameId);
+        
+        // 정렬 조건 추가
+        if (sortType === 'latest') {
+            query = query.order('created_at', { ascending: false });
+        } else if (sortType === 'likes') {
+            query = query.order('like_count', { ascending: false, nullsFirst: false });
+        }
+        
+        const { data, error } = await query;
 
         if (error) throw error;
 
@@ -266,3 +274,9 @@ window.viewPost = function (postId) {
 // 초기 로드
 checkAuthStatus();
 loadPosts();
+
+// 정렬 이벤트 리스너
+window.addEventListener('sortPosts', async (e) => {
+    const sortType = e.detail.sortType;
+    await loadPosts(sortType);
+});

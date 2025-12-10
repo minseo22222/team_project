@@ -57,15 +57,37 @@ header {
 
 .left { display: flex; align-items: center; gap: 20px; }
 
-.brand { display: flex; align-items: center; gap: 10px; }
-.brand .logo {
-    width: 36px; height: 36px;
-    border: 2px solid #000;
-    display: grid; place-items: center;
-    background: var(--brand);
-    color: #000; font-weight: 900; font-size: 20px;
+.brand { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    white-space: nowrap; 
 }
-.brand-name { font-weight: 900; font-size: 20px; letter-spacing: -0.5px; text-transform: uppercase; }
+
+/* 로고 틀 (상자) */
+.brand .logo {
+    width: 32px; 
+    height: 32px;
+    /* border: 2px solid #000;  <-- 테두리가 싫으면 이 줄을 지우세요 */
+    border-radius: 4px;      /* (선택) 모서리를 살짝 둥글게 */
+    overflow: hidden;        /* 이미지가 둥근 모서리 밖으로 튀어나가지 않게 함 */
+}
+
+/* 이미지 자체 설정 (추가된 부분) */
+.brand .logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 중요: 비율 유지하며 꽉 채우기 (양옆 여백 잘림) */
+    display: block;    /* 이미지 하단 미세한 공백 제거 */
+
+    transform: scale(2);
+}
+
+.brand-name { 
+    font-weight: 900; 
+    letter-spacing: -0.5px; 
+    text-transform: uppercase; 
+}
 
 .nav-links { display: flex; gap: 16px; }
 .nav-links a { font-weight: 700; font-size: 16px; padding: 4px 8px; transition: transform 0.1s; }

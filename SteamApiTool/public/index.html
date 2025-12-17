@@ -1,0 +1,405 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Steam 게임 검색 · 등록 도구</title>
+  <style>
+    /* Pop Art 테마 */
+    :root {
+      --bg-color: #FFFFFF;
+      --card-bg: #FFFFFF;
+      --ink: #000000;
+      --brand: #54C1FF;
+      --accent-pink: #FF90E8;
+      --accent-green: #00E054;
+      --border-w: 3px;
+      --shadow-hard: 4px 4px 0px 0px #000000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard', -apple-system, system-ui, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg-color);
+      color: var(--ink);
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      margin: 0 0 20px;
+      text-transform: uppercase;
+      background: var(--brand);
+      border: var(--border-w) solid #000;
+      box-shadow: var(--shadow-hard);
+      padding: 15px;
+      text-align: center;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .card {
+      border: var(--border-w) solid #000;
+      background: var(--card-bg);
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: var(--shadow-hard);
+    }
+
+    input {
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      border: 2px solid #000;
+      background: #fff;
+      outline: none;
+      box-shadow: 2px 2px 0 #eee;
+      transition: all 0.1s;
+    }
+
+    input:focus {
+      background: #fffff0;
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 800;
+      border: 2px solid #000;
+      background: var(--accent-green);
+      cursor: pointer;
+      box-shadow: var(--shadow-hard);
+      transition: all 0.1s;
+      text-transform: uppercase;
+    }
+
+    button:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 #000;
+    }
+
+    button:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    img.cover {
+      max-width: 100%;
+      border: 2px solid #000;
+      box-shadow: var(--shadow-hard);
+      margin: 10px 0;
+    }
+
+    img.thumb {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border: 2px solid #000;
+      background: var(--accent-pink);
+      margin: 3px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    .muted {
+      color: #666;
+      font-weight: 600;
+    }
+
+    pre {
+      background: #000;
+      color: #0f0;
+      padding: 15px;
+      overflow: auto;
+      border: 2px solid #000;
+      font-size: 13px;
+      box-shadow: var(--shadow-hard);
+    }
+
+    a.result {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      text-decoration: none;
+      color: inherit;
+      border: 2px solid #000;
+      background: #fff;
+      margin: 8px 0;
+      box-shadow: 3px 3px 0 #000;
+      transition: all 0.1s;
+      font-weight: 600;
+    }
+
+    a.result:hover {
+      background: var(--brand);
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 #000;
+    }
+
+    #regResult {
+      margin-top: 15px;
+      padding: 15px;
+      background: var(--accent-green);
+      border: 2px solid #000;
+      box-shadow: var(--shadow-hard);
+    }
+
+    details {
+      margin-top: 15px;
+      border: 2px solid #000;
+      padding: 10px;
+      background: #fff;
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    summary {
+      font-weight: 800;
+      cursor: pointer;
+      padding: 5px;
+      background: var(--brand);
+      border: 2px solid #000;
+      margin: -10px -10px 10px;
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 8px;
+      border: 2px solid #000;
+      font-weight: 700;
+    }
+
+    th {
+      background: var(--accent-pink);
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .row { flex-direction: column; }
+      input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 Steam 게임 검색 · 등록</h1>
+
+  <!-- 검색 -->
+  <div class="card">
+    <div class="row">
+      <input id="q" style="min-width:260px" placeholder="게임명 입력 (예: 엘든링, 法环)" />
+      <button id="btnSearch">검색</button>
+    </div>
+    <div id="searchOut" style="margin-top:15px"><small class="muted">검색 결과가 여기에 표시됩니다</small></div>
+  </div>
+
+  <!-- 앱 상세 + 등록 -->
+  <div class="card">
+    <div class="row">
+      <input id="appInput" style="min-width:160px" placeholder="AppID (예: 1245620)" />
+      <button id="btnApp">앱 조회</button>
+      <button id="btnRegister" style="background: var(--accent-pink);">DB 등록</button>
+      <button id="btnReq" style="background: var(--brand);">사양 보기</button>
+    </div>
+
+    <div id="regResult" style="display:none;"></div>
+    <div id="appOut" style="margin-top:15px"><small class="muted">앱 정보가 여기에 표시됩니다</small></div>
+    <div id="reqOut" style="margin-top:15px"></div>
+  </div>
+
+  <script type="module">
+    const API_BASE = location.port === "3000" ? "" : "http://localhost:3000";
+    const $ = (id) => document.getElementById(id);
+    const escapeHtml = (s) => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const money = (cents) => (cents==null ? '—' : (cents/100).toLocaleString("ko-KR"));
+
+    // 검색
+    async function doSearch(){
+      const q = $('q').value.trim();
+      const out = $('searchOut');
+      if(!q){ out.innerHTML = '<small class="muted">검색어를 입력하세요</small>'; return; }
+      out.innerHTML = '<small class="muted">검색 중...</small>';
+      try{
+        const r = await fetch(`${API_BASE}/api/search?term=${encodeURIComponent(q)}`);
+        const body = await r.json();
+        if(!r.ok) throw new Error(body.error || '검색 실패');
+        if(!Array.isArray(body.items) || !body.items.length){
+          out.innerHTML = '<small class="muted">결과 없음</small>'; return;
+        }
+        out.innerHTML = body.items.map(it => `
+          <a class="result" href="javascript:void(0)" data-appid="${it.appid}">
+            ${it.tiny_image ? `<img class="thumb" src="${it.tiny_image}" alt="">` : ''}
+            <div><strong>${escapeHtml(it.name)}</strong> <span class="muted">(${it.appid})</span></div>
+          </a>
+        `).join('');
+        out.querySelectorAll('a.result').forEach(a => {
+          a.addEventListener('click', () => {
+            $('appInput').value = a.dataset.appid;
+            loadApp();
+            $('appOut').scrollIntoView({ behavior:'smooth', block:'start' });
+          });
+        });
+      }catch(e){
+        out.innerHTML = `<pre>${escapeHtml(e.message)}</pre>`;
+      }
+    }
+
+    // 앱 상세
+    async function loadApp(){
+      const out = $('appOut');
+      const id = $('appInput').value.trim();
+      if(!/^\d+$/.test(id)){ out.innerHTML = '<small class="muted">AppID를 입력하세요</small>'; return; }
+      out.innerHTML = '<small class="muted">로딩 중...</small>';
+      try{
+        const r = await fetch(`${API_BASE}/api/app/${id}`);
+        const body = await r.json();
+        if(!r.ok) throw new Error(body.error || '조회 실패');
+
+        const pills = (arr=[]) => arr.map(x => `<span class="pill">${escapeHtml(x)}</span>`).join(' ');
+        const shots = (body.screenshots || []).slice(0, 12)
+          .map(s => `<img class="thumb" src="${s.thumb}" alt="">`).join('');
+
+        out.innerHTML = `
+          ${body.header_image ? `<img class="cover" src="${body.header_image}" alt="">` : ''}
+          <p style="font-size:20px; font-weight:900; margin:10px 0;"><strong>${escapeHtml(body.name || '')}</strong> <span class="muted">(${escapeHtml(body.type || '-')})</span></p>
+          <p><strong>무료:</strong> ${body.is_free ? '예' : '아니오'} · <strong>가격:</strong> ₩${money(body.price_cents)}</p>
+          <p><strong>장르:</strong> ${pills(body.genres)}</p>
+          <p><strong>개발사:</strong> ${escapeHtml(body.developers || '-')}</p>
+          <p><strong>유통사:</strong> ${escapeHtml(body.publishers || '-')}</p>
+          <div class="grid">${shots || '<small class="muted">스크린샷 없음</small>'}</div>
+          <details><summary>원본 JSON</summary><pre>${escapeHtml(JSON.stringify(body, null, 2))}</pre></details>
+        `;
+      }catch(e){
+        out.innerHTML = `<pre>${escapeHtml(e.message)}</pre>`;
+      }
+    }
+
+    // DB 등록
+    async function registerApp() {
+      const id = $('appInput').value.trim();
+      const resBox = $('regResult');
+      
+      if (!/^\d+$/.test(id)) return alert('AppID를 입력하세요');
+
+      resBox.style.display = 'block';
+      resBox.innerHTML = '<small class="muted">등록 및 점수 계산 중...</small>';
+
+      try {
+        const r = await fetch(`${API_BASE}/api/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appid: id })
+        });
+        
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || '등록 실패');
+
+        const scores = j.scores || {};
+        const saved = j.saved || {};
+
+        const renderScores = (scoreObj) => {
+          if (!scoreObj || Object.keys(scoreObj).length === 0) return '<span style="color:#666">0 (미식별)</span>';
+          return Object.entries(scoreObj).map(([name, score]) => 
+            `<div style="font-size:13px; margin:2px 0;"><span style="color:#000;">${escapeHtml(name)}:</span> <b>${score.toLocaleString()}</b></div>`
+          ).join('');
+        };
+
+        resBox.innerHTML = `
+          <div style="border-left:4px solid #000; padding-left:15px;">
+            <h3 style="margin:0 0 10px; font-size:18px;">✅ 등록 성공!</h3>
+            <p style="font-weight:900; font-size:16px;">${escapeHtml(saved.title)}</p>
+            <div style="margin-top:12px; background:#fff; padding:12px; border:2px solid #000; box-shadow: 3px 3px 0 #000;">
+              <strong style="font-size:16px;">📊 벤치마크 점수</strong>
+              <table style="margin-top:8px;">
+                <tr>
+                  <th>구분</th>
+                  <th>최소</th>
+                  <th>권장</th>
+                </tr>
+                <tr>
+                  <td><b>CPU</b></td>
+                  <td>${renderScores(scores.min_cpu_score)}</td>
+                  <td>${renderScores(scores.rec_cpu_score)}</td>
+                </tr>
+                <tr>
+                  <td><b>GPU</b></td>
+                  <td>${renderScores(scores.min_gpu_score)}</td>
+                  <td>${renderScores(scores.rec_gpu_score)}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        `;
+
+      } catch (e) {
+        resBox.innerHTML = `<div style="color:red; font-weight:bold;">❌ 오류: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    // 요구 사양
+    async function loadReq(){
+      const out = $('reqOut');
+      const id = $('appInput').value.trim();
+      if(!/^\d+$/.test(id)){ out.innerHTML = '<small class="muted">AppID를 입력하세요</small>'; return; }
+      out.innerHTML = '<small class="muted">로딩 중...</small>';
+      try{
+        const r = await fetch(`${API_BASE}/api/app/${id}/requirements`);
+        const b = await r.json();
+        if(!r.ok) throw new Error(b.error || '조회 실패');
+        const pc = b.pc_requirements || {};
+        out.innerHTML = `
+          <div style="background:#fff; padding:15px; border:2px solid #000; box-shadow: var(--shadow-hard);">
+            <h3 style="background: var(--brand); padding:8px; border:2px solid #000; margin:-15px -15px 15px;">최소 사양</h3>
+            <div>${pc.minimum_html || '—'}</div>
+            <h3 style="background: var(--accent-pink); padding:8px; border:2px solid #000; margin:15px -15px 15px;">권장 사양</h3>
+            <div>${pc.recommended_html || '—'}</div>
+          </div>
+          <details><summary>구조화 데이터</summary><pre>${escapeHtml(JSON.stringify(pc, null, 2))}</pre></details>
+        `;
+      }catch(e){
+        out.innerHTML = `<pre>${escapeHtml(e.message)}</pre>`;
+      }
+    }
+
+    // 이벤트
+    $('btnSearch').addEventListener('click', doSearch);
+    $('q').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+    $('btnApp').addEventListener('click', loadApp);
+    $('appInput').addEventListener('keydown', e => { if(e.key==='Enter') loadApp(); });
+    $('btnRegister').addEventListener('click', registerApp);
+    $('btnReq').addEventListener('click', loadReq);
+  </script>
+</body>
+</html>

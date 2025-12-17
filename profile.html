@@ -703,12 +703,31 @@
 
 <body>
 
-  <div id="header"></div>
+<div id="header"></div>
+
   <script type="module">
+    // [추가된 부분 1] Supabase 가져오기
+    import supabase from './scripts/supabase.js';
+
+    // [추가된 부분 2] 로그아웃 감지 리스너
+    // 헤더에서 로그아웃 버튼을 누르면 이 코드가 감지하고 페이지를 새로고침합니다.
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        window.location.reload();
+      }
+    });
+
+    // 기존 헤더 로드 로직
     fetch('components/header.html')
       .then(res => res.text())
       .then(html => {
         document.getElementById('header').innerHTML = html;
+        const redirectURL = document.getElementById('redirect');
+        if (redirectURL) { // 에러 방지를 위한 if 체크 추가
+            redirectURL.textContent = window.location.href; 
+        }
+        
+        // 외부 JS 추가 실행
         const script = document.createElement('script');
         script.type = 'module';
         script.src = 'scripts/header_user.js';

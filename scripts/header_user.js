@@ -11,7 +11,6 @@ window.onSearch = onSearch
 const authLink = document.getElementById('auth-link')
 const menu = document.getElementById('ddMenu')
 const profile_img = document.getElementById('user_profile')
-const items = Array.from(menu.querySelectorAll('[role="menuitem"]'))
 
 // 메뉴 열기/닫기 함수
 function openMenu() {
@@ -33,7 +32,7 @@ async function checkAuthStatus() {
         // ✅ 로그인 상태
         const { data: profile, error } = await supabase
             .from('Users')
-            .select('nickname, profile_image_url')
+            .select('nickname, profile_image_url, role')  // ← role 추가
             .eq('user_id', user.id)
             .maybeSingle()
 
@@ -44,6 +43,21 @@ async function checkAuthStatus() {
         profile_img.width = 40;
         profile_img.height = 40;
         profile_img.style = "background-color: white; border-radius: 50%; object-fit: cover;"
+        
+        // ✅ 관리자인 경우 메뉴에 "관리" 항목 추가
+        const userRole = profile?.role || 'user';
+        if (userRole === 'admin') {
+            const menuUl = menu.querySelector('ul');
+            const adminLi = document.createElement('li');
+            adminLi.role = 'menuitem';
+            adminLi.tabIndex = 1;
+            adminLi.textContent = '관리';
+            
+            // "내정보" 다음에 삽입
+            const firstLi = menuUl.querySelector('li');
+            firstLi.parentNode.insertBefore(adminLi, firstLi.nextSibling);
+        }
+
         // 클릭 시 메뉴 토글
         authLink.addEventListener('click', (e) => {
             e.stopPropagation()
@@ -51,18 +65,22 @@ async function checkAuthStatus() {
             else openMenu()
         })
 
-        // 메뉴 항목 클릭 이벤트 (한 번만 등록)
+        // 메뉴 항목 클릭 이벤트
+        const items = Array.from(menu.querySelectorAll('[role="menuitem"]'));
         items.forEach((li) => {
             li.addEventListener('click', async (e) => {
                 const text = li.textContent.trim()
                 if (text === '내정보') {
                     closeMenu()
-                    // 예: 프로필 페이지 이동
                     const url = `profile.html?id=${user.id}`;
                     window.location.href = url;
+                } else if (text === '관리') {
+                    closeMenu()
+                    window.location.href = '../admin.html';  // 관리자 페이지로 이동
                 } else if (text === '로그아웃') {
                     e.preventDefault()
                     await supabase.auth.signOut();
+                    localStorage.clear();  // ← localStorage 초기화
                     window.location.reload();
                 }
             })

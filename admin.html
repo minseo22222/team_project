@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>관리자 대시보드 - 갓겜판독기</title>
+  <style>
+    /* Pop Art 테마 */
+    :root {
+        --bg-color: #FFDE59;
+        --card-bg: #FFFFFF;
+        --ink: #000000;
+        --brand: #54C1FF;
+        --accent-pink: #FF90E8;
+        --accent-red: #FF4D4D;
+        --border-w: 3px;
+        --shadow-hard: 6px 6px 0px 0px #000000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      background-image: radial-gradient(#000 1px, transparent 1px);
+      background-size: 20px 20px;
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      color: var(--ink);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+      text-align: center;
+      background: var(--brand);
+      border: var(--border-w) solid #000;
+      box-shadow: var(--shadow-hard);
+      padding: 20px;
+      position: relative;
+    }
+
+    h1::before {
+      content: "ADMIN";
+      position: absolute;
+      top: -15px; right: 20px;
+      background: var(--accent-pink);
+      border: 2px solid #000;
+      padding: 4px 12px;
+      font-size: 14px;
+      box-shadow: 3px 3px 0 #000;
+      transform: rotate(5deg);
+    }
+
+    .nav-menu {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      flex: 1;
+      min-width: 150px;
+      padding: 15px 20px;
+      border: 2px solid #000;
+      background: #fff;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 #000;
+      transition: all 0.1s;
+      text-transform: uppercase;
+    }
+
+    .nav-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 #000;
+      background: var(--brand);
+    }
+
+    .nav-btn.active {
+      background: var(--accent-pink);
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    .content-section {
+      display: none;
+      background: var(--card-bg);
+      border: var(--border-w) solid #000;
+      box-shadow: var(--shadow-hard);
+      padding: 30px;
+      min-height: 600px;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    iframe {
+      width: 100%;
+      height: 700px;
+      border: 2px solid #000;
+      background: white;
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 12px 24px;
+      border: 2px solid #000;
+      background: var(--accent-red);
+      color: #000;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 4px 4px 0 #000;
+      transition: all 0.1s;
+      text-transform: uppercase;
+    }
+
+    .back-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 #000;
+    }
+
+    .info-box {
+      background: #fff;
+      border: 2px solid #000;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    .info-box h3 {
+      font-size: 20px;
+      font-weight: 900;
+      margin-bottom: 10px;
+      background: var(--accent-pink);
+      display: inline-block;
+      padding: 4px 10px;
+      border: 2px solid #000;
+    }
+
+    /* 검색바 */
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-bar input {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px;
+      border: 2px solid #000;
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    .search-bar button {
+      padding: 12px 24px;
+      border: 2px solid #000;
+      background: var(--brand);
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 #000;
+      transition: all 0.1s;
+    }
+
+    .search-bar button:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 #000;
+    }
+
+    /* 테이블 */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+      border: 2px solid #000;
+      box-shadow: 4px 4px 0 #000;
+    }
+
+    .data-table th {
+      background: var(--brand);
+      padding: 12px;
+      text-align: left;
+      font-weight: 900;
+      border: 2px solid #000;
+      font-size: 14px;
+    }
+
+    .data-table td {
+      padding: 12px;
+      border: 2px solid #000;
+      font-weight: 600;
+    }
+
+    .data-table tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
+    .data-table img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid #000;
+      object-fit: cover;
+    }
+
+    /* 액션 버튼 */
+    .action-btn {
+      padding: 6px 12px;
+      border: 2px solid #000;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 #000;
+      transition: all 0.1s;
+      margin: 2px;
+    }
+
+    .action-btn.admin {
+      background: var(--accent-pink);
+    }
+
+    .action-btn.user {
+      background: #fff;
+    }
+
+    .action-btn.delete {
+      background: var(--accent-red);
+    }
+
+    .action-btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border: 2px solid #000;
+      font-size: 11px;
+      font-weight: 800;
+      box-shadow: 1px 1px 0 #000;
+      margin: 0 2px;
+    }
+
+    .badge.admin { background: var(--accent-pink); }
+    .badge.user { background: #fff; }
+
+    @media (max-width: 768px) {
+      .nav-menu { flex-direction: column; }
+      .nav-btn { min-width: 100%; }
+      iframe { height: 500px; }
+      .data-table { font-size: 12px; }
+      .data-table th, .data-table td { padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="home.html" class="back-btn">← 홈으로</a>
+    
+    <h1>관리자 대시보드</h1>
+
+    <nav class="nav-menu">
+      <button class="nav-btn active" data-tab="steam">Steam API Tool</button>
+      <button class="nav-btn" data-tab="users">회원 관리</button>
+      <button class="nav-btn" data-tab="posts">게시글 관리</button>
+    </nav>
+
+    <!-- Steam API Tool -->
+    <section id="steam" class="content-section active">
+      <div class="info-box">
+        <h3>🎮 Steam API Tool</h3>
+        <p>Steam 게임 검색 및 DB 등록 도구입니다. Node.js 서버가 실행 중이어야 합니다.</p>
+        <p><strong>서버 주소:</strong> http://localhost:3000</p>
+      </div>
+      <iframe src="http://localhost:3000" frameborder="0"></iframe>
+    </section>
+
+    <!-- 회원 관리 -->
+    <section id="users" class="content-section">
+      <div class="info-box">
+        <h3>👥 회원 관리</h3>
+        <p>회원 목록 조회 및 권한 관리</p>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" id="userSearch" placeholder="이메일 또는 닉네임 검색">
+        <button onclick="searchUsers()">검색</button>
+        <button onclick="loadUsers()" style="background: #fff;">전체 보기</button>
+      </div>
+
+      <div id="userLoading" class="loading">회원 정보를 불러오는 중...</div>
+      <div id="userContent" style="display: none;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>프로필</th>
+              <th>닉네임</th>
+              <th>이메일</th>
+              <th>권한</th>
+              <th>상태</th> 
+              <th>가입일</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 게시글 관리 -->
+    <section id="posts" class="content-section">
+      <div class="info-box">
+        <h3>📝 게시글 관리</h3>
+        <p>게시글 목록 조회 및 삭제</p>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" id="postSearch" placeholder="제목 또는 작성자 검색">
+        <button onclick="searchPosts()">검색</button>
+        <button onclick="loadPosts()" style="background: #fff;">전체 보기</button>
+      </div>
+
+      <div id="postLoading" class="loading">게시글을 불러오는 중...</div>
+      <div id="postContent" style="display: none;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>제목</th>
+              <th>작성자</th>
+              <th>게임</th>
+              <th>👁️ 조회</th>
+              <th>👍 좋아요</th>
+              <th>작성일</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="postTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    import supabase from './scripts/supabase.js';
+
+    // 권한 체크
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'admin') {
+      alert('❌ 관리자만 접근 가능합니다.');
+      window.location.href = '/home.html';
+    }
+
+    // 탭 전환
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const sections = document.querySelectorAll('.content-section');
+
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.dataset.tab;
+        
+        navBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        sections.forEach(s => s.classList.remove('active'));
+        document.getElementById(targetTab).classList.add('active');
+
+        // 탭 진입 시 데이터 로드
+        if (targetTab === 'users') loadUsers();
+        if (targetTab === 'posts') loadPosts();
+      });
+    });
+
+    // ========== 회원 관리 ==========
+    async function loadUsers() {
+      document.getElementById('userLoading').style.display = 'block';
+      document.getElementById('userContent').style.display = 'none';
+
+      try {
+        const { data, error } = await supabase
+          .from('Users')
+          .select('user_id, email, nickname, role, created_at, profile_image_url, is_suspended')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        renderUsers(data || []);
+      } catch (err) {
+        console.error('Error loading users:', err);
+        alert('회원 목록을 불러올 수 없습니다.');
+      }
+    }
+
+    window.searchUsers = async function() {
+      const keyword = document.getElementById('userSearch').value.trim();
+      if (!keyword) {
+        loadUsers();
+        return;
+      }
+
+      document.getElementById('userLoading').style.display = 'block';
+      document.getElementById('userContent').style.display = 'none';
+
+      try {
+        const { data, error } = await supabase
+          .from('Users')
+          .select('user_id, email, nickname, role, created_at, profile_image_url, is_suspended')
+          .or(`email.ilike.%${keyword}%,nickname.ilike.%${keyword}%`)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        renderUsers(data || []);
+      } catch (err) {
+        console.error('Error searching users:', err);
+        alert('검색 중 오류가 발생했습니다.');
+      }
+    };
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('userTableBody');
+      
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">회원이 없습니다.</td></tr>';
+      } else {
+        tbody.innerHTML = users.map(user => `
+          <tr>
+            <td><img src="${user.profile_image_url || ''}" alt="프로필"></td>
+            <td><strong>${escapeHtml(user.nickname || '')}</strong></td>
+            <td>${escapeHtml(user.email || '')}</td>
+            <td><span class="badge ${user.role}">${user.role === 'admin' ? '관리자' : '일반'}</span></td>
+            <td><span class="badge ${user.is_suspended ? 'delete' : 'user'}">${user.is_suspended ? '정지' : '정상'}</span></td>
+            <td>${new Date(user.created_at).toLocaleDateString('ko-KR')}</td>
+            <td>
+              ${user.role === 'admin' 
+                ? `<button class="action-btn user" onclick="changeRole('${user.user_id}', 'user')">일반으로</button>`
+                : `<button class="action-btn admin" onclick="changeRole('${user.user_id}', 'admin')">관리자로</button>`
+              }
+              <br>
+              ${user.is_suspended
+                ? `<button class="action-btn user" onclick="toggleSuspend('${user.user_id}', false)">정지 해제</button>`
+                : `<button class="action-btn delete" onclick="toggleSuspend('${user.user_id}', true)">정지</button>`
+              }
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      document.getElementById('userLoading').style.display = 'none';
+      document.getElementById('userContent').style.display = 'block';
+    }
+
+    window.changeRole = async function(userId, newRole) {
+      if (!confirm(`정말 권한을 ${newRole === 'admin' ? '관리자' : '일반 사용자'}로 변경하시겠습니까?`)) return;
+
+      try {
+        const { error } = await supabase
+          .from('Users')
+          .update({ role: newRole })
+          .eq('user_id', userId);
+
+        if (error) throw error;
+
+        alert('✅ 권한이 변경되었습니다.');
+        loadUsers();
+      } catch (err) {
+        console.error('Error changing role:', err);
+        alert('권한 변경 중 오류가 발생했습니다.');
+      }
+    };
+    window.toggleSuspend = async function(userId, suspend) {
+    if (!confirm(`정말 이 회원을 ${suspend ? '정지' : '정지 해제'}하시겠습니까?`)) return;
+
+    try {
+        const { error } = await supabase
+        .from('Users')
+        .update({ is_suspended: suspend })
+        .eq('user_id', userId);
+
+        if (error) throw error;
+
+        alert(suspend ? '✅ 회원이 정지되었습니다.' : '✅ 정지가 해제되었습니다.');
+        loadUsers();
+    } catch (err) {
+        console.error('Error toggling suspend:', err);
+        alert('처리 중 오류가 발생했습니다.');
+    }
+    };
+
+    // ========== 게시글 관리 ==========
+    async function loadPosts() {
+      document.getElementById('postLoading').style.display = 'block';
+      document.getElementById('postContent').style.display = 'none';
+
+      try {
+        const { data, error } = await supabase
+          .from('board_posts')
+          .select(`
+            post_id,
+            title,
+            game_slug,
+            views,
+            like_count,
+            created_at,
+            Users!board_posts_user_id_fkey (nickname),
+            Games!board_posts_game_id_fkey (title)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(100);
+
+        if (error) throw error;
+
+        renderPosts(data || []);
+      } catch (err) {
+        console.error('Error loading posts:', err);
+        alert('게시글 목록을 불러올 수 없습니다.');
+      }
+    }
+
+    window.searchPosts = async function() {
+      const keyword = document.getElementById('postSearch').value.trim();
+      if (!keyword) {
+        loadPosts();
+        return;
+      }
+
+      document.getElementById('postLoading').style.display = 'block';
+      document.getElementById('postContent').style.display = 'none';
+
+      try {
+        const { data, error } = await supabase
+          .from('board_posts')
+          .select(`
+            post_id,
+            title,
+            game_slug,
+            views,
+            like_count,
+            created_at,
+            Users!board_posts_user_id_fkey (nickname),
+            Games!board_posts_game_id_fkey (title)
+          `)
+          .ilike('title', `%${keyword}%`)
+          .order('created_at', { ascending: false })
+          .limit(100);
+
+        if (error) throw error;
+
+        renderPosts(data || []);
+      } catch (err) {
+        console.error('Error searching posts:', err);
+        alert('검색 중 오류가 발생했습니다.');
+      }
+    };
+
+    function renderPosts(posts) {
+      const tbody = document.getElementById('postTableBody');
+      
+      if (posts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">게시글이 없습니다.</td></tr>';
+      } else {
+        tbody.innerHTML = posts.map(post => `
+          <tr>
+            <td>
+              <a href="/board_post.html?id=${post.post_id}" target="_blank" style="color: inherit; text-decoration: none; font-weight: 700;">
+                ${escapeHtml(post.title || '')}
+              </a>
+            </td>
+            <td>${escapeHtml(post.Users?.nickname || '익명')}</td>
+            <td>${escapeHtml(post.Games?.title || '-')}</td>
+            <td>${post.views || 0}</td>
+            <td>${post.like_count || 0}</td>
+            <td>${new Date(post.created_at).toLocaleDateString('ko-KR')}</td>
+            <td>
+              <button class="action-btn delete" onclick="deletePost('${post.post_id}')">삭제</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      document.getElementById('postLoading').style.display = 'none';
+      document.getElementById('postContent').style.display = 'block';
+    }
+
+    window.deletePost = async function(postId) {
+      if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
+
+      try {
+        const { error } = await supabase
+          .from('board_posts')
+          .delete()
+          .eq('post_id', postId);
+
+        if (error) throw error;
+
+        alert('✅ 게시글이 삭제되었습니다.');
+        loadPosts();
+      } catch (err) {
+        console.error('Error deleting post:', err);
+        alert('삭제 중 오류가 발생했습니다.');
+      }
+    };
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // 전역 함수 노출
+    window.loadUsers = loadUsers;
+    window.loadPosts = loadPosts;
+  </script>
+</body>
+</html>
